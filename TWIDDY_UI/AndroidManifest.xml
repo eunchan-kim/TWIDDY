@@ -30,6 +30,7 @@
         <activity android:name="StartUI"></activity>
         <activity android:name="SettingUI"></activity>
         <activity android:name="LoginUI"></activity>
+        <activity android:name="DisplayEmotion"></activity>
     </application>
 
 </manifest>
