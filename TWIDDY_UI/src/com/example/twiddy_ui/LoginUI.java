@@ -3,6 +3,7 @@ package com.example.twiddy_ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -35,15 +36,24 @@ public class LoginUI extends Activity implements OnClickListener{
 			btn_login.setText("카카오톡에 로그인 합니다.");
 			break;
 		}		
+		btn_login.setOnClickListener(this);
 	}
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		String userId = et_email.getText().toString();
-		String userPw = et_password.getText().toString();
-		// TODO: 유저 아이디와 패스워드를 가지고 로그인 하기
-		
-		
+		switch(v.getId())
+		{
+		case R.id.btn_login:
+			// TODO Auto-generated method stub
+			String userId = et_email.getText().toString();
+			String userPw = et_password.getText().toString();
+			// TODO: 유저 아이디와 패스워드를 가지고 로그인 하기
+			
+			
+			///////////
+			Intent it_display = new Intent(this, DisplayEmotion.class);
+			startActivity(it_display);
+			break;
+		}
 	}
 }
