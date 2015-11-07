@@ -8,23 +8,42 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.twiddy_ui.UIActivity" >
 
-    <EditText
-        android:id="@+id/tts_content"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:gravity="center"
-        android:textSize="40dp" />
-    
     <Button
         android:id="@+id/btn_read"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/imageView1"
-        android:layout_alignLeft="@+id/imageView1"
-        android:layout_marginBottom="70dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
         android:text="READ" />
+
+    <Button
+        android:id="@+id/btn_hear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btn_read"
+        android:layout_alignBottom="@+id/btn_read"
+        android:layout_toRightOf="@+id/btn_read"
+        android:text="HEAR" />
+
+    <EditText
+        android:id="@+id/tts_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:gravity="center"
+        android:layout_below="@+id/btn_read"
+        android:layout_alignLeft="@+id/btn_read"
+        android:textSize="40dp" />
+    
+    <TextView
+        android:id="@+id/stt_result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tts_content"
+        android:layout_alignRight="@+id/tts_content"
+        android:layout_below="@+id/tts_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:textSize="40dp" />
 
 </RelativeLayout>
