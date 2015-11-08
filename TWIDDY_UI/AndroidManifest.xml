@@ -32,7 +32,7 @@
         <activity android:name="SettingUI"></activity>
         <activity android:name="LoginUI"></activity>
         <activity android:name="DisplayEmotion"></activity>
-        <activity android:name="TTSActivity"></activity>
+        <activity android:name="VoiceActivity"></activity>
     </application>
 
 </manifest>
