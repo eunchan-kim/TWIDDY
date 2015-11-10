@@ -35,12 +35,13 @@ public class STTListener implements SpeechRecognizeListener{
 
 	@Override
 	public void onReady() {
+		Log.d("speech", "onReady");
 	}
 
 	@Override
-	public void onResults(Bundle arg0) {
+	public void onResults(Bundle result) {
 		String res = "NONE";
-		ArrayList<String> texts = arg0.getStringArrayList(SpeechRecognizerClient.KEY_RECOGNITION_RESULTS);
+		ArrayList<String> texts = result.getStringArrayList(SpeechRecognizerClient.KEY_RECOGNITION_RESULTS);
 
 		if (texts.size() > 0) {
 			res = texts.get(0);
@@ -55,6 +56,6 @@ public class STTListener implements SpeechRecognizeListener{
 
 	@Override
 	public void onFinished() {
-	
+		Log.d("speech", "onFinished");
 	}
 }
