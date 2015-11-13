@@ -80,26 +80,13 @@ public class TwitLogin extends Activity {
 		    public void showHTML(String pin) throws TwitterException  
 		    {  
 		    	if(pin.length() > 0 ) {
-		    		Log.d("PIN", "pin = " + pin);             
-	                try {	                	
-	                	twitter.getOAuthAccessToken(requestToken, pin);
-	            		List<twitter4j.Status> statuses = twitter.getHomeTimeline();
-	            		Log.d("PIN","Showing home timeline.");
-	            	    for (twitter4j.Status status : statuses) {
-	            	        Log.d("PIN",status.getUser().getName() + ":" +
-	            	                           status.getText());
-	            	    }	         
-	            	    Intent it_display = new Intent(ctx, DisplayEmotion.class);
-	            	    it_display.putExtra("twitter", twitter);
-	        			startActivity(it_display);            			
-	            	    finish();
-	                } catch (TwitterException te) {
-	                	if (401 == te.getStatusCode()) {
-	                		System.out.println("Unable to get the access token.");
-	                	} else {
-	                		te.printStackTrace();
-	                	}
-	                }				
+		    		Log.d("PIN", "pin = " + pin);  
+                	twitter.getOAuthAccessToken(requestToken, pin);	            		       
+            	    Intent it_display = new Intent(ctx, DisplayEmotion.class);
+            	    it_display.putExtra("twitter", twitter);
+        			startActivity(it_display);            			
+            	    finish();
+	                				
 		    	}
 		    	else {
 		    		Log.d("HTML", "No pin accept");

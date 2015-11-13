@@ -1,13 +1,18 @@
 package com.example.twiddy_ui;
 
+import java.util.List;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +29,8 @@ import net.daum.mf.speech.api.SpeechRecognizerManager;
 import net.daum.mf.speech.api.TextToSpeechClient;
 import net.daum.mf.speech.api.TextToSpeechListener;
 import net.daum.mf.speech.api.TextToSpeechManager;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 public class DisplayEmotion  extends Activity implements OnClickListener{
 	public static String NEWTONE_API_KEY = "dcd2a896fab93d17a09e2d752ef0e145";
@@ -49,6 +56,50 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		emotion.changeEmotion(EnumEmotion.Normal);
 		FrameLayout frame = (FrameLayout)findViewById(R.id.layout_display);
 		frame.addView(emotion, 0);
+		/* Login to Twitter */
+		Intent intent = getIntent();
+		final Twitter twitter = (Twitter) intent.getExtras().get("twitter");
+		
+		final Handler handler = new Handler(){
+			@Override
+			public void handleMessage(Message msg){
+			    emotion.changeEmotion(EnumEmotion.values()[msg.what]);
+			}
+		};
+		
+		Thread thread = new Thread(new Runnable(){
+		    @Override
+		    public void run() {
+		    	try {
+					List<twitter4j.Status> statuses = twitter.getHomeTimeline();
+					Log.d("TIMELINE","Showing home timeline.");
+				    for (twitter4j.Status status : statuses) {
+				        Log.d("TIMELINE",status.getUser().getName() + ":" +
+				                           status.getText());
+				    }	 
+				    try{
+				    	while(true){
+						    Thread.sleep(2000);
+							handler.sendEmptyMessage(EnumEmotion.Happy.ordinal());
+							Thread.sleep(2000);
+							handler.sendEmptyMessage(EnumEmotion.Normal.ordinal());
+							Thread.sleep(2000);
+							handler.sendEmptyMessage(EnumEmotion.Angry.ordinal());
+				    	}
+				    }
+				    catch(InterruptedException e) {}
+				    
+				} catch (TwitterException te) {
+		        	if (401 == te.getStatusCode()) {
+		        		System.out.println("Unable to get the access token.");
+		        	} else {
+		        		te.printStackTrace();
+		        	}
+		        }
+		    }
+		});
+		thread.start();
+		
 		
 		/* Voice Related */
 
