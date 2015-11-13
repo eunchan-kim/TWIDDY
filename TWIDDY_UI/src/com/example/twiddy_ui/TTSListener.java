@@ -17,7 +17,7 @@ public class TTSListener implements TextToSpeechListener {
 
 	@Override
 	public void onFinished() {
-		// TODO Auto-generated method stub	
+		this.parent.handleTTSResult();
 	}
 
 }

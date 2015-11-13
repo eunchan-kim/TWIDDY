@@ -9,6 +9,7 @@ import net.daum.mf.speech.api.SpeechRecognizerClient;
 
 public class STTListener implements SpeechRecognizeListener{
 	private VoiceActivity parent;
+	private String result = "";
 	
 	public STTListener(VoiceActivity _parent) {
 		this.parent = _parent;
@@ -46,7 +47,7 @@ public class STTListener implements SpeechRecognizeListener{
 		if (texts.size() > 0) {
 			res = texts.get(0);
 		}
-		this.parent.showReuslt(res);
+		this.result = res;
 	}
 
 	@Override
@@ -56,6 +57,7 @@ public class STTListener implements SpeechRecognizeListener{
 
 	@Override
 	public void onFinished() {
-		Log.d("speech", "onFinished");
+		Log.d("STT Finished", "onFinished");
+		this.parent.showSTTReuslt(this.result);
 	}
 }

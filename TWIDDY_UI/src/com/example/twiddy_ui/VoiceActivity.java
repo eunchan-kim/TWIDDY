@@ -15,17 +15,19 @@ import net.daum.mf.speech.api.TextToSpeechClient;
 import net.daum.mf.speech.api.TextToSpeechListener;
 import net.daum.mf.speech.api.TextToSpeechManager;
 
-
 public class VoiceActivity extends Activity implements OnClickListener {
 	public static String NEWTONE_API_KEY = "dcd2a896fab93d17a09e2d752ef0e145";
 	private TextToSpeechClient tts_client;
 	private SpeechRecognizerClient stt_client;
+	private RunningTwiddy twiddy;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_tts);
 
+		this.twiddy = new RunningTwiddy(this);
+		
 		/* Set TTS Module */
 		TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
 		TextToSpeechListener tts_listener = new TTSListener(this);
@@ -69,24 +71,29 @@ public class VoiceActivity extends Activity implements OnClickListener {
 		}
 	}
 	
-	private void performTTS(String msg) {
+	public void performTTS(String msg) {
 		Log.e("TTS", msg);
 		this.tts_client.play(msg);
 	}
 	
-	private void performSTT() {
+	public void performSTT() {
+		Log.e("STT", "start");
 		this.stt_client.startRecording(false);
 	}
 
-	public void showReuslt(final String result_text) {
+	public void showSTTReuslt(final String result_text) {
 		this.runOnUiThread(new Runnable() {
 			public void run() {
 				TextView result_view = (TextView) findViewById(R.id.stt_result);
 				result_view.setText(result_text);
 				
-				performTTS(result_text);
+				twiddy.handleResult(result_text);
 			}
 		});
+	}
+	
+	public void handleTTSResult() {
+		twiddy.handleResult(RunningTwiddy.ENDED_TTS);
 	}
 
 	@Override
