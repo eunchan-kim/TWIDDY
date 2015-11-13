@@ -32,7 +32,7 @@ public class UIActivity extends Activity implements OnClickListener{
 			startActivity(it_start);
 			break;
 		case R.id.btn_setting:
-			Intent it_setting = new Intent(this, DisplayEmotion.class);
+			Intent it_setting = new Intent(this, SettingUI.class);
 			startActivity(it_setting);
 			break;
 		}
