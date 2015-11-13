@@ -37,6 +37,8 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	private TextToSpeechClient tts_client;
 	private SpeechRecognizerClient stt_client;
 	private RunningTwiddy twiddy;
+	private Twitter twitter;
+	private String lastment;
 	
 	Emotion emotion;
 	
@@ -58,7 +60,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		frame.addView(emotion, 0);
 		/* Login to Twitter */
 		Intent intent = getIntent();
-		final Twitter twitter = (Twitter) intent.getExtras().get("twitter");
+		twitter = (Twitter) intent.getExtras().get("twitter");
 		
 		final Handler handler = new Handler(){
 			@Override
@@ -67,31 +69,30 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 			}
 		};
 		
+		
+		
 		Thread thread = new Thread(new Runnable(){
 		    @Override
 		    public void run() {
 		    	try {
-					List<twitter4j.Status> statuses = twitter.getHomeTimeline();
-					Log.d("TIMELINE","Showing home timeline.");
-				    for (twitter4j.Status status : statuses) {
-				        Log.d("TIMELINE",status.getUser().getName() + ":" +
-				                           status.getText());
-				    }	 
-				    try{
-				    	while(true){
-						    Thread.sleep(2000);
-							handler.sendEmptyMessage(EnumEmotion.Happy.ordinal());
-							Thread.sleep(2000);
-							handler.sendEmptyMessage(EnumEmotion.Normal.ordinal());
-							Thread.sleep(2000);
-							handler.sendEmptyMessage(EnumEmotion.Angry.ordinal());
-				    	}
-				    }
-				    catch(InterruptedException e) {}
-				    
+					List<twitter4j.Status> statuses = twitter.getMentionsTimeline();
+					String lastment = statuses.get(0).getText();
+		    		while(true) {
+		    			Log.e("MENTION","Get new mention");
+		    			statuses = twitter.getMentionsTimeline();
+						if(statuses.isEmpty() == false && lastment != statuses.get(0).getText()) {
+							lastment = statuses.get(0).getText();
+							performTTS(lastment);
+							Log.e("MENTION","Showing home timeline.");
+							Log.e("MENTION", "last mention : " + statuses.get(0).getText());												
+						}
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {e.printStackTrace();}
+		    		}
 				} catch (TwitterException te) {
 		        	if (401 == te.getStatusCode()) {
-		        		System.out.println("Unable to get the access token.");
+		        		Log.d("update","Unable to get the access token.");
 		        	} else {
 		        		te.printStackTrace();
 		        	}
@@ -101,9 +102,11 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		thread.start();
 		
 		
+		
+		
 		/* Voice Related */
 
-		this.twiddy = new RunningTwiddy(this);
+		this.twiddy = new RunningTwiddy(this, twitter, lastment);
 		
 		/* Set TTS Module */
 		TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
@@ -152,12 +155,16 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	/* Voice Activity Methods */
 	public void performTTS(String msg) {
 		Log.e("TTS", msg);
-		this.tts_client.play(msg);
+		if (this.twiddy.isRunning()) {
+			this.tts_client.play(msg);
+		}
 	}
 	
 	public void performSTT() {
 		Log.e("STT", "start");
-		this.stt_client.startRecording(false);
+		if (this.twiddy.isRunning()) {
+			this.stt_client.startRecording(false);
+		}
 	}
 
 	public void showSTTReuslt(final String result_text) {
@@ -170,6 +177,14 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	
 	public void handleTTSResult() {
 		twiddy.handleResult(RunningTwiddy.ENDED_TTS);
+	}
+	
+	@Override
+	public void onBackPressed() {
+		this.stt_client.stopRecording();
+		this.tts_client.stop();
+		twiddy.stop();
+		super.onBackPressed();
 	}
 	
 	@Override

@@ -6,9 +6,12 @@ import java.util.Arrays;
 import android.util.Log;
 
 public class TextHandler {
-	private static final ArrayList<String> calling_twiddy = new ArrayList<String>( Arrays.asList("íŠ¸ìœ„ë””","íŠ¸ìœ„ì§€", "íŠ¸ìœ„í‹°", "treaty", "íŠ¸ìœ„í„°", "íŠ¸ë¦¬ë””ë¹„") );
-	private static final ArrayList<String> yes = new ArrayList<String>( Arrays.asList("ì‘", "ìœ¼", "ì•Œì•˜ì–´", "ì˜¤ì¼€ì´", "OK", "ok", "Ok", "yes") );
-	private static final ArrayList<String> no = new ArrayList<String>( Arrays.asList("ì•„ë‹ˆ", "ì•„ë¯¸", "ë…¸", "no", "No", "NO") );
+	private static final ArrayList<String> calling_twiddy = new ArrayList<String>( 
+			Arrays.asList("Æ®À§µğ","Æ®À§Áö", "Æ®À§Æ¼", "treaty", "Æ®À§ÅÍ", "Æ®¸®µğºñ", "Å×µğ") );
+	private static final ArrayList<String> yes = new ArrayList<String>( 
+			Arrays.asList("ÀÀ", "À¸", "¾Ë¾Ò¾î", "¿ÀÄÉÀÌ", "OK", "ok", "Ok", "yes") );
+	private static final ArrayList<String> no = new ArrayList<String>( 
+			Arrays.asList("¾Æ´Ï", "¾Æ¹Ì", "³ë", "no", "No", "NO") );
 
 	public static EnumCommand checkCommand(String msg) {
 		String cmd = msg.trim();
@@ -37,11 +40,11 @@ public class TextHandler {
 	}
 	
 	public static String askToUpload(String msg) {
-		return "ë‹¹ì‹ ì€ " + msg + " ë¼ê³  ë§í–ˆìŠµë‹ˆë‹¤. íŠ¸ìœ„í„°ì— ì—…ë¡œë“œ í• ê¹Œìš”?";
+		return "´ç½ÅÀº " + msg + " ¶ó°í ¸»Çß½À´Ï´Ù. Æ®À§ÅÍ¿¡ ¾÷·Îµå ÇÒ±î¿ä?";
 	}
 	
 	public static String askToRead(String sender) {
-		return sender + " ë‹˜ì´ ë‹¹ì‹ ì—ê²Œ ë©˜ì…˜ì„ ë³´ëƒˆìŠµë‹ˆë‹¤. ì½ì„ê¹Œìš”?";
+		return sender + " ´ÔÀÌ ´ç½Å¿¡°Ô ¸à¼ÇÀ» º¸³Â½À´Ï´Ù. ÀĞÀ»±î¿ä?";
 	}
 	
 }

@@ -54,6 +54,7 @@ public class STTListener implements SpeechRecognizeListener{
 	@Override
 	public void onError(int code, String msg) {
 		Log.e("STT Error: " + code, msg);
+		this.parent.showSTTReuslt(RunningTwiddy.ERROR_STT);
 	}
 
 	@Override
