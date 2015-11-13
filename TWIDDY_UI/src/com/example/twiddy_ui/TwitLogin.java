@@ -1,11 +1,13 @@
 package com.example.twiddy_ui;
 
+import java.util.List;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import twitter4j.*;
@@ -13,29 +15,29 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.ConfigurationBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.*;
 
-public class TwitLogin extends Activity{
+public class TwitLogin extends Activity {
+	
+	RequestToken requestToken;
+    Twitter twitter;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.twit_login);
-		
+	
 		LoadWebPageASYNC twitasync = new LoadWebPageASYNC();
 		twitasync.execute("");
-		
     }
-        	
 	
+
+
+	@SuppressLint({ "SetJavaScriptEnabled", "JavascriptInterface" })
 	private class LoadWebPageASYNC extends AsyncTask<String, Void, String>{
 		
 		@Override
 		protected String doInBackground(String... urls){
 		
-			String testStatus="Hello from twitter4j ";
 	        ConfigurationBuilder cb = new ConfigurationBuilder();
 	         
 	        //the following is set without accesstoken- desktop client
@@ -45,24 +47,9 @@ public class TwitLogin extends Activity{
 	   
 	        try {
 	            TwitterFactory tf = new TwitterFactory(cb.build());
-	            Twitter twitter = tf.getInstance();
+	            twitter = tf.getInstance();
 	            try {
-	                System.out.println("-----");
-	 
-	                // get request token.
-	                // this will throw IllegalStateException if access token is already available
-	                // this is oob, desktop client version
-	                RequestToken requestToken = twitter.getOAuthRequestToken(); 
-	 
-	                System.out.println("Got request token.");
-	                System.out.println("Request token: " + requestToken.getToken());
-	                System.out.println("Request token secret: " + requestToken.getTokenSecret());
-	 
-	                System.out.println("|-----");
-	 
-	                AccessToken accessToken = null;
-	 
-	                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	                requestToken = twitter.getOAuthRequestToken(); 
 	                
 	                final String urltoload = requestToken.getAuthenticationURL();
 
@@ -70,18 +57,61 @@ public class TwitLogin extends Activity{
 	                System.out.println(requestToken.getAuthorizationURL());
 	                TwitLogin.this.runOnUiThread(new Runnable() {
 	                	public void run(){
-	                		WebView webView = (WebView) findViewById(R.id.webView);
+	                		final WebView webView = (WebView) findViewById(R.id.webView);
 	                		webView.getSettings().setJavaScriptEnabled(true);
+	                		webView.addJavascriptInterface(new MyJavaScriptInterface(), "HTMLOUT");
 	                		webView.loadUrl(urltoload);
+	                		webView.setWebViewClient(new WebViewClient() {
+	                            @Override
+	                            public void onPageFinished(WebView view, String url) {
+	                            	//webView.loadUrl("javascript:window.HTMLOUT.showHTML('<head>'+document.getElementsByTagName('html')[0].innerHTML+'</head>');");
+	                            	webView.loadUrl("javascript:window.HTMLOUT.showHTML(document.getElementsByTagName('code')[0].innerHTML);");
+	                            	Log.d("HTML", "BBBBBBBBBB");
+	                            }
+	                        });
 	                	}
 	                });
-	                    
-	                System.out.print("Enter the PIN(if available) and hit enter after you granted access.[PIN]:");
-	                String pin = "";//br.readLine();
-	                /*    
+	                   
+	            } catch (IllegalStateException ie) {
+	                // access token is already available, or consumer key/secret is not set.
+	                if (!twitter.getAuthorization().isEnabled()) {
+	                    System.out.println("OAuth consumer key/secret is not set.");
+	                    System.exit(-1);
+	                }
+	            }
+	             
+	            //Status status = twitter.updateStatus("Hello From Twddy");
+	
+	         } catch (TwitterException te) {
+	             te.printStackTrace();
+	             System.out.println("Failed to get timeline: " + te.getMessage());
+	             System.exit(-1);
+	         } 
+	        return null;
+		}
+		
+		@Override
+		protected void onPostExecute(String result){
+			
+		}
+		
+		class MyJavaScriptInterface  
+		{  
+			@JavascriptInterface
+		    public void showHTML(String pin) throws TwitterException  
+		    {  
+		    	if(pin.length() > 0 ) {
+		    		Log.d("HTML", "pin = " + pin);
+	                AccessToken accessToken = null;	                
 	                try {
 	                	if (pin.length() > 0) {
 	                		accessToken = twitter.getOAuthAccessToken(requestToken, pin);
+	                		List<twitter4j.Status> statuses = twitter.getHomeTimeline();
+	                		Log.d("HTML","Showing home timeline.");
+	                	    for (twitter4j.Status status : statuses) {
+	                	        Log.d("HTML",status.getUser().getName() + ":" +
+	                	                           status.getText());
+	                	    }
 	                	} else {
 	                		accessToken = twitter.getOAuthAccessToken(requestToken);
 	                	}
@@ -92,42 +122,13 @@ public class TwitLogin extends Activity{
 	                		te.printStackTrace();
 	                	}
 	                }
-	                /*
-	                System.out.println("Got access token.");
-	                System.out.println("Access token: " + accessToken.getToken());
-	                System.out.println("Access token secret: " + accessToken.getTokenSecret());
-	                 */
-	            } catch (IllegalStateException ie) {
-	                // access token is already available, or consumer key/secret is not set.
-	                if (!twitter.getAuthorization().isEnabled()) {
-	                    System.out.println("OAuth consumer key/secret is not set.");
-	                    System.exit(-1);
-	                }
-	            }
-	             
-	            //Status status = twitter.updateStatus("Hello From Twddy");
-	  
-	            //System.out.println("Successfully updated the status to [" + status.getText() + "].");
-	  
-	            //System.out.println("ready exit");
-	              
-	            //System.exit(0);
-	         } catch (TwitterException te) {
-	             te.printStackTrace();
-	             System.out.println("Failed to get timeline: " + te.getMessage());
-	             System.exit(-1);
-	         } /*catch (IOException ioe) {
-	             ioe.printStackTrace();
-	             System.out.println("Failed to read the system input.");
-	             System.exit(-1);
-	         }*/
-	        return null;
-		}
-		
-		@Override
-		protected void onPostExecute(String result){
-			
-		}
+				
+		    	}
+		    	else {
+		    		Log.d("HTML", "No pin accept");
+		    	}
+		    }  
+		}  
 	}
 }
 
