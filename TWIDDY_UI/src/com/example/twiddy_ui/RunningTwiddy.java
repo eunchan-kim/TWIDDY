@@ -16,14 +16,14 @@ public class RunningTwiddy {
 	public static String ENDED_TTS = "@@ENDED-TTS@@";
 
 	private RunningState state = RunningState.waiting;
-	private VoiceActivity parent;
+	private DisplayEmotion parent;
 
 	private String uploadMsg = "";
 	private String alarmedMsg = "";
 	
 	private boolean valid_transition = false;
 
-	public RunningTwiddy(VoiceActivity _parent) {
+	public RunningTwiddy(DisplayEmotion _parent) {
 		this.parent = _parent;
 	}
 

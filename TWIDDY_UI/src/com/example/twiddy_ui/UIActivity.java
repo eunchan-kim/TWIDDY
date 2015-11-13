@@ -28,11 +28,11 @@ public class UIActivity extends Activity implements OnClickListener{
 		switch(v.getId())
 		{
 		case R.id.btn_start:
-			Intent it_start = new Intent(this, StartUI.class /* StartUI.class */);
+			Intent it_start = new Intent(this, StartUI.class);
 			startActivity(it_start);
 			break;
 		case R.id.btn_setting:
-			Intent it_setting = new Intent(this, VoiceActivity.class);
+			Intent it_setting = new Intent(this, DisplayEmotion.class);
 			startActivity(it_setting);
 			break;
 		}

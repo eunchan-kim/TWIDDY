@@ -10,6 +10,12 @@
         android:layout_height="wrap_content"
         android:layout_weight="0.06" >
 
+        <Button
+            android:id="@+id/btn_hear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button" />
+
     </FrameLayout>
 
     <LinearLayout

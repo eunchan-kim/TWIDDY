@@ -4,9 +4,9 @@ import android.util.Log;
 import net.daum.mf.speech.api.TextToSpeechListener;
 
 public class TTSListener implements TextToSpeechListener {
-	private VoiceActivity parent;
+	private DisplayEmotion parent;
 	
-	public TTSListener(VoiceActivity _parent) {
+	public TTSListener(DisplayEmotion _parent) {
 		this.parent = _parent;
 	}
 	/* TextToSpeechListener Methods */

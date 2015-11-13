@@ -8,10 +8,10 @@ import net.daum.mf.speech.api.SpeechRecognizeListener;
 import net.daum.mf.speech.api.SpeechRecognizerClient;
 
 public class STTListener implements SpeechRecognizeListener{
-	private VoiceActivity parent;
+	private DisplayEmotion parent;
 	private String result = "";
 	
-	public STTListener(VoiceActivity _parent) {
+	public STTListener(DisplayEmotion _parent) {
 		this.parent = _parent;
 	}
 
@@ -48,6 +48,7 @@ public class STTListener implements SpeechRecognizeListener{
 			res = texts.get(0);
 		}
 		this.result = res;
+		Log.d("speech", "onResult: " + res);
 	}
 
 	@Override
