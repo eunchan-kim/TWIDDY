@@ -1,8 +1,13 @@
 package com.example.twiddy_ui;
 
+import java.util.List;
+
 import android.util.Log;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 enum RunningState {
+	stop,
 	waiting,
 	recording,
 	askToUpload,
@@ -14,17 +19,23 @@ enum RunningState {
 
 public class RunningTwiddy {
 	public static String ENDED_TTS = "@@ENDED-TTS@@";
+	public static String ERROR_STT = "@@ERROR-STT@@";
 
 	private RunningState state = RunningState.waiting;
 	private DisplayEmotion parent;
+	private Twitter twitter;
+	private String lastmentold;
+	private String lastmentnew;
 
 	private String uploadMsg = "";
 	private String alarmedMsg = "";
-	
+
 	private boolean valid_transition = false;
 
-	public RunningTwiddy(DisplayEmotion _parent) {
+	public RunningTwiddy(DisplayEmotion _parent, Twitter _twitter, String _lastment) {
 		this.parent = _parent;
+		this.twitter = _twitter;
+		this.lastmentold = _lastment;
 	}
 
 	private void reset() {
@@ -34,8 +45,25 @@ public class RunningTwiddy {
 		this.state = RunningState.waiting;
 	}
 
+	public void stop() {
+		Log.e("stop", "stop()");
+		this.state = RunningState.stop;
+	}
+
+	public boolean isRunning() {
+		return this.state != RunningState.stop;
+	}
+
 	public void handleResult(String msg) {
+		if (isRunning() && msg.equals(ERROR_STT)) {
+			reset();
+			this.parent.performSTT();
+			return;
+		}
 		switch (this.state) {
+		case stop:
+			Log.e("state", "stop");
+			break;
 		case waiting:
 			Log.e("state", "waiting");
 			transitionFromWating(msg);
@@ -70,9 +98,12 @@ public class RunningTwiddy {
 
 	private void transitionFromWating(String msg) {
 		if (msg.equals(ENDED_TTS)) {
-			if (this.valid_transition)
-				this.state = RunningState.recording;
-			this.parent.performSTT();
+			if (valid_transition) {
+				state = RunningState.recording;
+				parent.performSTT();
+			} else {
+				parent.performSTT();
+			}			
 		} else {
 			EnumCommand cmdCode = TextHandler.checkCommand(msg);
 			switch (cmdCode) {
@@ -84,7 +115,7 @@ public class RunningTwiddy {
 			case no:
 			case none:
 				this.valid_transition = false;
-				this.parent.performTTS("뭐라고 하셨죠?.");
+				this.parent.performTTS("뭐라고하셨죠?.");
 				break;
 			}
 		}
@@ -105,7 +136,26 @@ public class RunningTwiddy {
 			case yes:
 				this.state = RunningState.uploading;
 				//TODO
-				Log.e("uploading", this.uploadMsg);
+				Thread thread = new Thread(new Runnable(){
+					@Override
+					public void run() {
+						try {
+							twitter.updateStatus(uploadMsg); 						    
+						} catch (TwitterException te) {
+							if (401 == te.getStatusCode()) {
+								Log.d("update","Unable to get the access token.");
+							} else {
+								te.printStackTrace();
+							}
+						}
+						finally {
+							handleResult("");
+						}
+					
+						Log.e("uploading", uploadMsg);
+					}
+				});
+				thread.start();
 				break;
 			case startRecording:
 			case no:
@@ -119,7 +169,7 @@ public class RunningTwiddy {
 
 	private void transitionFromUploading(String msg) {
 		this.reset();
-		this.parent.performTTS("업로드가 끝났습니다.");
+		this.parent.performTTS("업로드가 완료되었습니다.");
 	}
 
 	private void transitionFromGettingAlarm(String msg) {
@@ -142,7 +192,7 @@ public class RunningTwiddy {
 			case no:
 			case none:
 				this.reset();
-				this.parent.performTTS("업로드를 취소합니다.");
+				this.parent.performTTS("�뾽濡쒕뱶瑜� 痍⑥냼�빀�땲�떎.");
 				break;
 			}
 		}
