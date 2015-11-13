@@ -33,6 +33,7 @@
         <activity android:name="LoginUI"></activity>
         <activity android:name="DisplayEmotion"></activity>
         <activity android:name="VoiceActivity"></activity>
+        <activity android:name="TwitLogin"></activity>
     </application>
 
 </manifest>

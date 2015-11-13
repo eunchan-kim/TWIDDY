@@ -31,7 +31,7 @@ public class StartUI extends Activity implements OnClickListener{
 			startActivity(it_facebook);
 			break;
 		case R.id.imgbtn_twitter:
-			Intent it_twitter = new Intent(this, LoginUI.class);
+			Intent it_twitter = new Intent(this, TwitLogin.class);
 			it_twitter.putExtra("type", EnumSNS.twitter);
 			startActivity(it_twitter);
 			break;
