@@ -1,7 +1,5 @@
 package com.example.twiddy_ui;
 
-import java.util.List;
-
 import android.util.Log;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
