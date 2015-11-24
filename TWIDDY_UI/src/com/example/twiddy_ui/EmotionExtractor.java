@@ -1,7 +1,5 @@
 package com.example.twiddy_ui;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,10 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 public class EmotionExtractor {
-	public static void getEmotion(String msg) {
+	public static int getEmotion(String msg) {
 
 		String URL = "http://143.248.142.86:4000/jsonrpc";
 		HashMap<String,Object> params = new HashMap<String, Object>();
@@ -30,19 +26,30 @@ public class EmotionExtractor {
 		params.put("id", new Integer(0));
 		String response;
 		try {
-			response = makeRequest(URL, params);
-			Log.e("getEmotion", response);
+//			response = makeRequest(URL, params);
+			response = "{\"jsonrpc\": \"2.0\", \"result\": 31, \"id\": 0}";
+			return getScore(response);
 		} catch (Exception e) {
 			e.printStackTrace();
+			return -1;
 		}
 	}
-	
+
 	private static String makeUnicode(String msg) {
 		String res = "";
 		for (int i = 0; i < msg.length(); i++) {
-            res = res + String.format("%04X ", msg.codePointAt(i));
-        }
+			res = res + String.format("%04X ", msg.codePointAt(i));
+		}
 		return res;
+	}
+	
+	private static int getScore(String response) {
+		/* result form: {"jsonrpc": "2.0", "result": 2, "id": 0} */
+		int pos = response.indexOf("\"result\"");
+		pos = response.indexOf(" ", 20);
+		int end_pos = response.indexOf(",", pos);
+		String result = response.substring(pos+1, end_pos);		
+		return new Integer(result);
 	}
 
 	public static String makeRequest(String path, Map<String, Object> params) throws Exception 

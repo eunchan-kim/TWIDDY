@@ -32,21 +32,54 @@ import net.daum.mf.speech.api.TextToSpeechManager;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
+class MentionThread implements Runnable {
+	private DisplayEmotion parent;
+	MentionThread(DisplayEmotion _parent) {
+		this.parent = _parent;
+	}
+	
+	@Override
+    public void run() {
+    	try {
+			List<twitter4j.Status> statuses = this.parent.twitter.getMentionsTimeline();
+			String last_mention = statuses.get(0).getText();
+    		while(true) {
+    			Log.e("MENTION","Get new mention");
+    			statuses = this.parent.twitter.getMentionsTimeline();
+				if(statuses.isEmpty() == false && !last_mention.equals(statuses.get(0).getText())) {
+					last_mention = statuses.get(0).getText();
+					this.parent.getNewMention(last_mention);
+					Log.e("MENTION","Showing home timeline.");
+					Log.e("MENTION", "last mention : " + statuses.get(0).getText());												
+				}
+				try {
+					Thread.sleep(180000);
+				} catch (InterruptedException e) {e.printStackTrace();}
+    		}
+		} catch (TwitterException te) {
+        	if (401 == te.getStatusCode()) {
+        		Log.d("update","Unable to get the access token.");
+        	} else {
+        		te.printStackTrace();
+        	}
+        }
+    }
+}
+
 public class DisplayEmotion  extends Activity implements OnClickListener{
 	public static String NEWTONE_API_KEY = "dcd2a896fab93d17a09e2d752ef0e145";
 	private TextToSpeechClient tts_client;
 	private SpeechRecognizerClient stt_client;
 	private RunningTwiddy twiddy;
-	private Twitter twitter;
-	private String lastment;
-	
+	public Twitter twitter;
+	private Thread mention_thread;
 	Emotion emotion;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_display);
-
+		
 		Button btn_normal = (Button)findViewById(R.id.btn_normal);
 		Button btn_happy = (Button)findViewById(R.id.btn_happy);
 		Button btn_angry = (Button)findViewById(R.id.btn_angry);
@@ -58,6 +91,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		emotion.changeEmotion(EnumEmotion.Normal);
 		FrameLayout frame = (FrameLayout)findViewById(R.id.layout_display);
 		frame.addView(emotion, 0);
+		
 		/* Login to Twitter */
 		Intent intent = getIntent();
 		twitter = (Twitter) intent.getExtras().get("twitter");
@@ -70,43 +104,12 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		};
 		
 		
-		
-		Thread thread = new Thread(new Runnable(){
-		    @Override
-		    public void run() {
-		    	try {
-					List<twitter4j.Status> statuses = twitter.getMentionsTimeline();
-					String lastment = statuses.get(0).getText();
-		    		while(true) {
-		    			Log.e("MENTION","Get new mention");
-		    			statuses = twitter.getMentionsTimeline();
-						if(statuses.isEmpty() == false && lastment != statuses.get(0).getText()) {
-							lastment = statuses.get(0).getText();
-							performTTS(lastment);
-							Log.e("MENTION","Showing home timeline.");
-							Log.e("MENTION", "last mention : " + statuses.get(0).getText());												
-						}
-						try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {e.printStackTrace();}
-		    		}
-				} catch (TwitterException te) {
-		        	if (401 == te.getStatusCode()) {
-		        		Log.d("update","Unable to get the access token.");
-		        	} else {
-		        		te.printStackTrace();
-		        	}
-		        }
-		    }
-		});
-		thread.start();
-		
-		
-		
+		/* getting mentions thread */
+		this.mention_thread = new Thread(new MentionThread(this));
+		this.mention_thread.start();
 		
 		/* Voice Related */
-
-		this.twiddy = new RunningTwiddy(this, twitter, lastment);
+		this.twiddy = new RunningTwiddy(this);
 		
 		/* Set TTS Module */
 		TextToSpeechManager.getInstance().initializeLibrary(getApplicationContext());
@@ -170,20 +173,54 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	public void showSTTReuslt(final String result_text) {
 		this.runOnUiThread(new Runnable() {
 			public void run() {				
-				twiddy.handleResult(result_text);
+				twiddy.handleSTTResult(result_text);
 			}
 		});
 	}
 	
 	public void handleTTSResult() {
-		twiddy.handleResult(RunningTwiddy.ENDED_TTS);
+		this.runOnUiThread(new Runnable() {
+			public void run() {
+				twiddy.handleTTSResult();
+			}
+		});
+	}
+	
+	public void getNewMention(final String msg) {
+		this.runOnUiThread(new Runnable() {
+			public void run() {
+				twiddy.getNewMention(msg);
+			}
+		});
+	}
+	
+	public void uploadTweet(final String msg) {
+		Thread thread = new Thread(new Runnable(){
+			@Override
+			public void run() {
+				try {
+					twitter.updateStatus(msg); 						    
+				} catch (TwitterException te) {
+					if (401 == te.getStatusCode()) {
+						Log.d("update","Unable to get the access token.");
+					} else {
+						te.printStackTrace();
+					}
+				}
+				finally {
+					twiddy.endedUpload();
+				}
+				Log.e("uploading", msg);
+			}
+		});
+		thread.start();
 	}
 	
 	@Override
 	public void onBackPressed() {
 		this.stt_client.stopRecording();
 		this.tts_client.stop();
-		twiddy.stop();
+		this.twiddy.stop();
 		super.onBackPressed();
 	}
 	
@@ -351,4 +388,5 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 			
 		}
 	}
+
 }

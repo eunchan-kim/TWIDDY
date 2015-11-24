@@ -7,11 +7,11 @@ import android.util.Log;
 
 public class TextHandler {
 	private static final ArrayList<String> calling_twiddy = new ArrayList<String>( 
-			Arrays.asList("Æ®À§µğ","Æ®À§Áö", "Æ®À§Æ¼", "treaty", "Æ®À§ÅÍ", "Æ®¸®µğºñ", "Å×µğ") );
+			Arrays.asList("íŠ¸ìœ„ë””","íŠ¸ìœ„ì§€", "íŠ¸ìœ„í‹°", "treaty", "íŠ¸ìœ„í„°", "íŠ¸ë¦¬ë””ë¹„", "í…Œë””") );
 	private static final ArrayList<String> yes = new ArrayList<String>( 
-			Arrays.asList("ÀÀ", "À¸", "¾Ë¾Ò¾î", "¿ÀÄÉÀÌ", "OK", "ok", "Ok", "yes") );
+			Arrays.asList("ì‘", "ìœ¼", "ì•Œì•˜ì–´", "ì˜¤ì¼€ì´", "OK", "ok", "Ok", "yes") );
 	private static final ArrayList<String> no = new ArrayList<String>( 
-			Arrays.asList("¾Æ´Ï", "¾Æ¹Ì", "³ë", "no", "No", "NO") );
+			Arrays.asList("ì•„ë‹ˆ", "ì•„ë¯¸", "ë…¸", "no", "No", "NO") );
 
 	public static EnumCommand checkCommand(String msg) {
 		String cmd = msg.trim();
@@ -35,16 +35,21 @@ public class TextHandler {
 	}
 	
 	public static String feedToSentence(String feed) {
-		//TODO
-		return feed;
+		int idx = feed.indexOf(" ", 1);
+		return feed.substring(idx);
+	}
+	
+	public static String getSender(String feed) {
+		int idx = feed.indexOf(" ", 1);
+		return feed.substring(0, idx);
 	}
 	
 	public static String askToUpload(String msg) {
-		return "´ç½ÅÀº " + msg + " ¶ó°í ¸»Çß½À´Ï´Ù. Æ®À§ÅÍ¿¡ ¾÷·Îµå ÇÒ±î¿ä?";
+		return "ë‹¹ì‹ ì€ " + msg + " ë¼ê³  ë§í–ˆìŠµë‹ˆë‹¤. íŠ¸ìœ„í„°ì— ì—…ë¡œë“œ í• ê¹Œìš”?";
 	}
 	
 	public static String askToRead(String sender) {
-		return sender + " ´ÔÀÌ ´ç½Å¿¡°Ô ¸à¼ÇÀ» º¸³Â½À´Ï´Ù. ÀĞÀ»±î¿ä?";
+		return sender + " ë‹˜ì´ ë‹¹ì‹ ì—ê²Œ ë©˜ì…˜ì„ ë³´ëƒˆìŠµë‹ˆë‹¤. ì½ì„ê¹Œìš”?";
 	}
 	
 }

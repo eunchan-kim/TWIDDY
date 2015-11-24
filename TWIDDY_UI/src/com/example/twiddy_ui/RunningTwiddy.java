@@ -7,52 +7,120 @@ import twitter4j.TwitterException;
 enum RunningState {
 	stop,
 	waiting,
+	/* upload related */
+	startRecording,
 	recording,
 	askToUpload,
-	uploading,
-	gettingAlarm,
+	answeringUpload,
+	upload,
+	askAgain,
+	answeringAgain,
+	/* mention related */
 	askToRead,
+	answeringRead,
 	readFeed,
 }
 
 public class RunningTwiddy {
-	public static String ENDED_TTS = "@@ENDED-TTS@@";
 	public static String ERROR_STT = "@@ERROR-STT@@";
 
 	private RunningState state = RunningState.waiting;
 	private DisplayEmotion parent;
-	private Twitter twitter;
-	private String lastmentold;
-	private String lastmentnew;
 
 	private String uploadMsg = "";
 	private String alarmedMsg = "";
 
-	private boolean valid_transition = false;
-
-	public RunningTwiddy(DisplayEmotion _parent, Twitter _twitter, String _lastment) {
+	public RunningTwiddy(DisplayEmotion _parent) {
 		this.parent = _parent;
-		this.twitter = _twitter;
-		this.lastmentold = _lastment;
+	}
+
+	private String runningState(RunningState state) {
+		switch (this.state) {
+		case stop:
+			return "stop";
+		case waiting:
+			return "waiting";
+		case startRecording:
+			return "startRecording";
+		case recording:
+			return "recording";
+		case askToUpload:
+			return "askToUpload";
+		case answeringUpload:
+			return "answeringUpload";
+		case upload:
+			return "upload";
+		case askAgain:
+			return "askAgain";
+		case answeringAgain:
+			return "answeringAgain";
+		case askToRead:
+			return "askToRead";
+		case answeringRead:
+			return "askA";
+		case readFeed:
+			return "readFeed";
+		}
+		return "None";
 	}
 
 	private void reset() {
 		this.uploadMsg = "";
 		this.alarmedMsg = "";
-		this.valid_transition = false;
 		this.state = RunningState.waiting;
 	}
 
 	public void stop() {
-		Log.e("stop", "stop()");
 		this.state = RunningState.stop;
 	}
 
 	public boolean isRunning() {
-		return this.state != RunningState.stop;
+		return this.state != RunningState.stop && this.state != RunningState.waiting;
 	}
 
-	public void handleResult(String msg) {
+	public void getNewMention(String msg) {
+		if (this.state == RunningState.waiting) {
+			this.state = RunningState.askToRead;
+			this.alarmedMsg = TextHandler.feedToSentence(msg);
+			this.parent.performTTS(TextHandler.getSender(msg) + "님으로 부터 멘션이 도착했습니다. 읽을까요?");
+		}
+	}
+
+	public void handleTTSResult() {
+		switch (this.state) {
+		case stop:
+			Log.e("state", "stop");
+			break;
+		case waiting:
+			Log.e("state", "waiting");
+			TTStransitionFromWaiting();
+			break;
+		case startRecording:
+			Log.e("state", "startRecording");
+			TTStransitionFromStartRecording();
+			break;
+		case askToUpload:
+			Log.e("state", "askToUpload");
+			TTStransitionFromAskToUpload();
+			break;
+		case askAgain:
+			Log.e("state",  "askAgain");
+			TTStransitionFromAskAgain();
+			break;
+		case askToRead:
+			Log.e("state", "askToRead");
+			TTStransitionFromAskToRead();
+			break;
+		case readFeed:
+			Log.e("state", "readFeed");
+			TTStransitionFromReadFeed();
+			break;
+		default:
+			Log.e("ERROR", runningState(this.state) + " State does not handle the TTS");
+		}
+	}
+
+	public void handleSTTResult(String msg) {
 		if (isRunning() && msg.equals(ERROR_STT)) {
 			reset();
 			this.parent.performSTT();
@@ -64,140 +132,136 @@ public class RunningTwiddy {
 			break;
 		case waiting:
 			Log.e("state", "waiting");
-			transitionFromWating(msg);
+			STTtransitionFromWating(msg);
 			break;
 		case recording:
 			Log.e("state", "recording");
-			transitionFromRecording(msg);
+			STTtransitionFromRecording(msg);
 			break;
-		case askToUpload:
-			Log.e("state", "askToUpload");
-			transitionFromAskToUpload(msg);
+		case answeringUpload:
+			Log.e("state",  "answeringUpload");
+			STTtransitionFromAnsweringUpload(msg);
 			break;
-		case uploading:
-			Log.e("state", "uploading");
-			transitionFromUploading(msg);
+		case answeringAgain:
+			Log.e("state",  "answeringAgain");
+			STTtransitionFromAnsweringAgain(msg);
 			break;
-		case gettingAlarm:
-			Log.e("state", "gettingAlarm");
-			transitionFromGettingAlarm(msg);
+		case answeringRead:
+			Log.e("state",  "answeringRead");
+			STTtransitionFromAnsweringRead(msg);
 			break;
-		case askToRead:
-			Log.e("state", "askToRead");
-			transitionFromAskToRead(msg);
-			break;
-		case readFeed:
-			Log.e("state", "readFeed");
-			transitionFromReadFeed(msg);
-			break;
+		default:
+			Log.e("ERROR", runningState(this.state) + " State does not handle the STT msg: " + msg);
 		}
 
 	}
 
-	private void transitionFromWating(String msg) {
-		if (msg.equals(ENDED_TTS)) {
-			if (valid_transition) {
-				state = RunningState.recording;
-				parent.performSTT();
-			} else {
-				parent.performSTT();
-			}			
-		} else {
-			EnumCommand cmdCode = TextHandler.checkCommand(msg);
-			switch (cmdCode) {
-			case startRecording:
-				this.valid_transition = true;
-				this.parent.performTTS("네!");
-				break;
-			case yes:
-			case no:
-			case none:
-				this.valid_transition = false;
-				this.parent.performTTS("뭐라고하셨죠?.");
-				break;
-			}
+	public void endedUpload() {
+		switch (this.state) {
+		case upload:
+			this.reset();
+			break;
+		default:
+			Log.e("ERROR", runningState(this.state) + " state does not handles endedUpload()");
 		}
 	}
 
-	private void transitionFromRecording(String msg) {
+	private void STTtransitionFromWating(String msg) {
+		EnumCommand cmdCode = TextHandler.checkCommand(msg);
+		switch (cmdCode) {
+		case startRecording:
+			this.state = RunningState.startRecording;
+			this.parent.performTTS("네!");
+			break;
+		case yes:
+		case no:
+		case none:
+			this.parent.performTTS("뭐라고하셨죠?.");
+			break;
+		}
+	}
+
+	private void STTtransitionFromRecording(String msg) {
 		this.state = RunningState.askToUpload;
 		this.uploadMsg = TextHandler.sentenceToFeed(msg);
 		this.parent.performTTS(TextHandler.askToUpload(msg));
 	}
 
-	private void transitionFromAskToUpload(String msg) {
-		if (msg.equals(ENDED_TTS)) {
-			this.parent.performSTT();
-		} else {
-			EnumCommand cmdCode = TextHandler.checkCommand(msg);
-			switch (cmdCode) {
-			case yes:
-				this.state = RunningState.uploading;
-				//TODO
-				Thread thread = new Thread(new Runnable(){
-					@Override
-					public void run() {
-						try {
-							twitter.updateStatus(uploadMsg); 						    
-						} catch (TwitterException te) {
-							if (401 == te.getStatusCode()) {
-								Log.d("update","Unable to get the access token.");
-							} else {
-								te.printStackTrace();
-							}
-						}
-						finally {
-							handleResult("");
-						}
-					
-						Log.e("uploading", uploadMsg);
-					}
-				});
-				thread.start();
-				break;
-			case startRecording:
-			case no:
-			case none:
-				this.reset();
-				this.parent.performTTS("업로드를 취소합니다.");
-				break;
-			}
+	private void TTStransitionFromWaiting() {
+		Log.e("TTStransitionFromWaiting", "Nothing to do here");
+	}
+	
+	private void TTStransitionFromStartRecording() {
+		this.state = RunningState.recording;
+		this.parent.performSTT();
+	}
+
+	private void TTStransitionFromAskToUpload() {
+		this.state = RunningState.answeringUpload;
+		this.parent.performSTT();
+	}
+
+	private void TTStransitionFromAskAgain() {
+		this.state = RunningState.answeringAgain;
+		this.parent.performSTT();
+	}
+	
+	private void TTStransitionFromAskToRead() {
+		this.state = RunningState.answeringRead;
+		this.parent.performSTT();
+	}
+
+	private void TTStransitionFromReadFeed() {
+		this.reset();
+	}
+	
+	private void STTtransitionFromAnsweringUpload(String msg) {
+		EnumCommand cmdCode = TextHandler.checkCommand(msg);
+		switch (cmdCode) {
+		case yes:
+			this.parent.uploadTweet(this.uploadMsg);
+			this.state = RunningState.upload;
+			break;
+		case startRecording:
+		case no:
+		case none:
+			this.reset();
+			this.state = RunningState.askAgain;
+			this.parent.performTTS("다른 메시지를 올릴까요?");
+			break;
 		}
 	}
 
-	private void transitionFromUploading(String msg) {
-		this.reset();
-		this.parent.performTTS("업로드가 완료되었습니다.");
-	}
-
-	private void transitionFromGettingAlarm(String msg) {
-		this.state = RunningState.askToRead;
-		this.alarmedMsg = TextHandler.feedToSentence(msg);
-		this.parent.performTTS(TextHandler.askToRead(msg));
-	}
-
-	private void transitionFromAskToRead(String msg) {
-		if (msg.equals(ENDED_TTS)) {
+	private void STTtransitionFromAnsweringAgain(String msg) {
+		EnumCommand cmdCode = TextHandler.checkCommand(msg);
+		switch (cmdCode) {
+		case yes:
+			this.state = RunningState.recording;
 			this.parent.performSTT();
-		} else {
-			EnumCommand cmdCode = TextHandler.checkCommand(msg);
-			switch (cmdCode) {
-			case yes:
-				this.state = RunningState.readFeed;
-				this.parent.performTTS(this.alarmedMsg);
-				break;
-			case startRecording:
-			case no:
-			case none:
-				this.reset();
-				this.parent.performTTS("�뾽濡쒕뱶瑜� 痍⑥냼�빀�땲�떎.");
-				break;
-			}
+			break;
+		case startRecording:
+		case no:
+		case none:
+			this.reset();
+			this.parent.performTTS("업로드를 취소합니다.");
+			break;
 		}
 	}
 
-	private void transitionFromReadFeed(String msg) {
-		this.reset();
-		this.parent.performTTS("Bye~");
+	private void STTtransitionFromAnsweringRead(String msg) {
+		EnumCommand cmdCode = TextHandler.checkCommand(msg);
+		switch (cmdCode) {
+		case yes:
+			this.state = RunningState.readFeed;
+			this.parent.performTTS(this.alarmedMsg);
+			break;
+		case startRecording:
+		case no:
+		case none:
+			this.reset();
+			this.parent.performTTS("Bye~");
+			break;
+		}
+
 	}
 }
