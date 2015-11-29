@@ -9,7 +9,7 @@ public class TextHandler {
 	private static final ArrayList<String> calling_twiddy = new ArrayList<String>( 
 			Arrays.asList("트위디","트위지", "트위티", "treaty", "트위터", "트리디비", "테디") );
 	private static final ArrayList<String> yes = new ArrayList<String>( 
-			Arrays.asList("응", "으", "알았어", "오케이", "OK", "ok", "Ok", "yes") );
+			Arrays.asList("응","어", "허", "러", "여", "으", "알았어", "오케이", "OK", "ok", "Ok", "yes") );
 	private static final ArrayList<String> no = new ArrayList<String>( 
 			Arrays.asList("아니", "아미", "노", "no", "No", "NO") );
 
@@ -36,7 +36,7 @@ public class TextHandler {
 	
 	public static String feedToSentence(String feed) {
 		int idx = feed.indexOf(" ", 1);
-		return feed.substring(idx);
+		return feed.substring(idx+1);
 	}
 	
 	public static String getSender(String feed) {

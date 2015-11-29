@@ -30,8 +30,14 @@ public class RunningTwiddy {
 	private String uploadMsg = "";
 	private String alarmedMsg = "";
 
+	private int errCount = 0;
+
 	public RunningTwiddy(DisplayEmotion _parent) {
 		this.parent = _parent;
+	}
+
+	public String getStatus() {
+		return runningState(this.state);
 	}
 
 	private String runningState(RunningState state) {
@@ -57,7 +63,7 @@ public class RunningTwiddy {
 		case askToRead:
 			return "askToRead";
 		case answeringRead:
-			return "askA";
+			return "answeringRead";
 		case readFeed:
 			return "readFeed";
 		}
@@ -68,20 +74,22 @@ public class RunningTwiddy {
 		this.uploadMsg = "";
 		this.alarmedMsg = "";
 		this.state = RunningState.waiting;
+		this.errCount = 0;
 	}
 
 	public void stop() {
 		this.state = RunningState.stop;
 	}
 
-	public boolean isRunning() {
-		return this.state != RunningState.stop && this.state != RunningState.waiting;
+	public boolean isStop() {
+		return this.state == RunningState.stop;
 	}
 
 	public void getNewMention(String msg) {
 		if (this.state == RunningState.waiting) {
 			this.state = RunningState.askToRead;
 			this.alarmedMsg = TextHandler.feedToSentence(msg);
+			this.parent.showEmotion(this.alarmedMsg);
 			this.parent.performTTS(TextHandler.getSender(msg) + "님으로 부터 멘션이 도착했습니다. 읽을까요?");
 		}
 	}
@@ -121,8 +129,12 @@ public class RunningTwiddy {
 	}
 
 	public void handleSTTResult(String msg) {
-		if (isRunning() && msg.equals(ERROR_STT)) {
-			reset();
+		if (!isStop() && msg.equals(ERROR_STT)) {
+			if (this.errCount > 3) {
+				reset();
+			} else {
+				this.errCount++;
+			}
 			this.parent.performSTT();
 			return;
 		}
@@ -160,6 +172,7 @@ public class RunningTwiddy {
 		switch (this.state) {
 		case upload:
 			this.reset();
+			this.parent.performTTS("업로드가 완료되었습니다.");
 			break;
 		default:
 			Log.e("ERROR", runningState(this.state) + " state does not handles endedUpload()");
@@ -188,9 +201,10 @@ public class RunningTwiddy {
 	}
 
 	private void TTStransitionFromWaiting() {
-		Log.e("TTStransitionFromWaiting", "Nothing to do here");
+		this.reset();
+		this.parent.performSTT();
 	}
-	
+
 	private void TTStransitionFromStartRecording() {
 		this.state = RunningState.recording;
 		this.parent.performSTT();
@@ -205,7 +219,7 @@ public class RunningTwiddy {
 		this.state = RunningState.answeringAgain;
 		this.parent.performSTT();
 	}
-	
+
 	private void TTStransitionFromAskToRead() {
 		this.state = RunningState.answeringRead;
 		this.parent.performSTT();
@@ -214,7 +228,7 @@ public class RunningTwiddy {
 	private void TTStransitionFromReadFeed() {
 		this.reset();
 	}
-	
+
 	private void STTtransitionFromAnsweringUpload(String msg) {
 		EnumCommand cmdCode = TextHandler.checkCommand(msg);
 		switch (cmdCode) {

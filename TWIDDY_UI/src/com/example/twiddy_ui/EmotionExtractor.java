@@ -15,21 +15,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
 public class EmotionExtractor {
 	public static int getEmotion(String msg) {
-
+		Log.e("EmotionExtractor", msg);
 		String URL = "http://143.248.142.86:4000/jsonrpc";
 		HashMap<String,Object> params = new HashMap<String, Object>();
 		params.put("jsonrpc", "2.0");
 		params.put("method", "get_emotion");
 		params.put("params", new ArrayList<String>(Arrays.asList(makeUnicode(msg))));
 		params.put("id", new Integer(0));
+
 		String response;
 		try {
-//			response = makeRequest(URL, params);
-			response = "{\"jsonrpc\": \"2.0\", \"result\": 31, \"id\": 0}";
+			Log.e("EmotionExtractor", URL + " :: " + msg);
+			response = makeRequest(URL, params);
 			return getScore(response);
 		} catch (Exception e) {
+			Log.e("EmotionExtractor", "ERROR");
 			e.printStackTrace();
 			return -1;
 		}
@@ -52,7 +56,7 @@ public class EmotionExtractor {
 		return new Integer(result);
 	}
 
-	public static String makeRequest(String path, Map<String, Object> params) throws Exception 
+	private static String makeRequest(String path, Map<String, Object> params) throws Exception 
 	{
 		//instantiates httpclient to make request
 		DefaultHttpClient httpclient = new DefaultHttpClient();

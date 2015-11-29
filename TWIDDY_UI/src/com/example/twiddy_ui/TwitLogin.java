@@ -56,7 +56,7 @@ public class TwitLogin extends Activity {
                 		final WebView webView = (WebView) findViewById(R.id.webView);
                 		webView.getSettings().setJavaScriptEnabled(true);
                 		webView.addJavascriptInterface(new MyJavaScriptInterface(), "HTMLOUT");
-                		webView.loadUrl(urltoload);
+                		webView.loadUrl(urltoload+"&force_login=true");
                 		webView.setWebViewClient(new WebViewClient() {
                             @Override
                             public void onPageFinished(WebView view, String url) {
