@@ -26,6 +26,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 import net.daum.mf.speech.api.SpeechRecognizeListener;
 import net.daum.mf.speech.api.SpeechRecognizerClient;
 import net.daum.mf.speech.api.SpeechRecognizerManager;
@@ -76,7 +77,12 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	private RunningTwiddy twiddy;
 	public Twitter twitter;
 	private Timer mention_thread;
+	private Timer debug_thread;
+	public Handler handler;
 	Emotion emotion;
+	private static final int REQUEST_CONNECT_DEVICE = 1;
+	private static final int REQUEST_ENABLE_BT = 2;
+	private BluetoothService btService = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +105,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		Intent intent = getIntent();
 		this.twitter = (Twitter) intent.getExtras().get("twitter");
 
-		final Handler handler = new Handler(){
+		handler = new Handler(){
 			@Override
 			public void handleMessage(Message msg){
 				emotion.changeEmotion(EnumEmotion.values()[msg.what]);
@@ -108,6 +114,19 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 
 		/* keep display on */
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		/* Bluetooth Service ON */
+		if(btService == null) {
+			btService = new BluetoothService(this);
+		}		
+		
+		if(btService.getState() != BluetoothService.STATE_CONNECTED 
+				&& btService.getDeviceState()){
+			btService.enableBluetooth();
+		}
+		else {
+			finish();
+		}
 
 		/* getting mentions thread */
 		this.mention_thread = new Timer();
@@ -140,13 +159,41 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		btn_hear.setOnClickListener(this);
 
 		/* for DEBUG */
-		new Timer().scheduleAtFixedRate(new TimerTask() {
+		debug_thread = new Timer();
+		debug_thread.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				Log.e("Timer", twiddy.getStatus());
 			}
 		}, 0, 10000);
 	}
+	
+	 private void sendMessage(String message) {
+	        if (btService.getState() != BluetoothService.STATE_CONNECTED) {
+	            Toast.makeText(this, "NOT CONNECTED YET!", Toast.LENGTH_SHORT).show();
+	            return;
+	        }
+
+	        if (message.length() > 0) {
+	            byte[] send = message.getBytes();
+	            btService.write(send);
+	        }
+	    }
+
+		public void onActivityResult(int requestCode, int resultCode, Intent data) { 
+	        switch (requestCode) {        
+	        case REQUEST_CONNECT_DEVICE:
+	            if (resultCode == Activity.RESULT_OK) {
+	            	btService.getDeviceInfo(data);
+	            }
+	            break;
+	        case REQUEST_ENABLE_BT:
+	            if (resultCode == Activity.RESULT_OK) {
+	            	btService.scanDevice();
+	            } 
+	            break;
+	        }
+		}
 
 	@Override
 	public void onClick(View v) {
@@ -155,12 +202,15 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		{
 		case R.id.btn_normal:
 			emotion.changeEmotion(EnumEmotion.Normal);
+			sendMessage("s");
 			break;
 		case R.id.btn_happy:
 			emotion.changeEmotion(EnumEmotion.Happy);
+			sendMessage("h");
 			break;
 		case R.id.btn_angry:
 			emotion.changeEmotion(EnumEmotion.Angry);
+			sendMessage("a");
 			break;
 		case R.id.btn_hear:
 			this.performSTT();
@@ -236,16 +286,24 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 			@Override
 			protected Object doInBackground(Object... params) {
 				// TODO Auto-generated method stub
+				
 				final int score = EmotionExtractor.getEmotion(msg);
 
 				runOnUiThread(new Runnable() {
 					public void run() {
-						if (score == -1) {
+						if (score == -1234) {
+							//Do nothing (error state)
+						}
+						else if (score == 0) {
 							emotion.changeEmotion(EnumEmotion.Normal);
-						} else if (score > 2) {
+							sendMessage("s");
+						} else if (score > 0) {
 							emotion.changeEmotion(EnumEmotion.Happy);
-						} else if (score > 10) {
+							sendMessage("h");
+						} 
+						else if (score < 0) {
 							emotion.changeEmotion(EnumEmotion.Angry);
+							sendMessage("a");
 						}
 					}
 				});
@@ -261,8 +319,18 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		this.stt_client.stopRecording();
 		this.tts_client.stop();
 		this.twiddy.stop();
+		this.mention_thread.cancel();
 		this.mention_thread.purge();
+		this.debug_thread.cancel();
+		this.debug_thread.purge();
 		super.onBackPressed();
+	}
+	
+	@Override
+	protected void onRestart() {
+		// TODO Auto-generated method stub
+		this.tts_client.play();
+		super.onRestart();
 	}
 
 	@Override

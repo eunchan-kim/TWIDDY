@@ -250,8 +250,8 @@ public class RunningTwiddy {
 		EnumCommand cmdCode = TextHandler.checkCommand(msg);
 		switch (cmdCode) {
 		case yes:
-			this.state = RunningState.recording;
-			this.parent.performSTT();
+			this.state = RunningState.startRecording;
+			this.parent.performTTS("뭐라고 올릴까요?");
 			break;
 		case startRecording:
 		case no:
@@ -268,12 +268,13 @@ public class RunningTwiddy {
 		case yes:
 			this.state = RunningState.readFeed;
 			this.parent.performTTS(this.alarmedMsg);
+			break;		
+		case no:
+			this.reset();
+			this.parent.performTTS("읽지 않겠습니다.");
 			break;
 		case startRecording:
-		case no:
 		case none:
-			this.reset();
-			this.parent.performTTS("Bye~");
 			break;
 		}
 

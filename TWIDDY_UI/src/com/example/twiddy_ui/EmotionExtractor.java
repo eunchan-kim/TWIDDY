@@ -35,7 +35,7 @@ public class EmotionExtractor {
 		} catch (Exception e) {
 			Log.e("EmotionExtractor", "ERROR");
 			e.printStackTrace();
-			return -1;
+			return -1234;
 		}
 	}
 

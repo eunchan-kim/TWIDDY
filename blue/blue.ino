@@ -37,18 +37,18 @@ void loop() {
       case ANGRY-1: 
       case ANGRY: 
       case ANGRY+1:
-        moveServo(20, 200, 15);
+        moveServo(60, 120, 15);
         break;
       case HAPPY-1:
       case HAPPY:
       case HAPPY+1:
-        moveServo(200, 20, 15);
+        moveServo(120, 60, 15);
         break;
       case SAD-1:
       case SAD:
       case SAD+1:
-        moveServo(20, 200, 15);
-        moveServo(200, 20, 15);
+        moveServo(60, 120, 15);
+        moveServo(120, 60, 15);
         break;
       default:
         break;
@@ -66,7 +66,7 @@ void moveServo(int s, int e, int t)
       for(angle = s; angle < e; angle ++)
       {
         leftArm.write(angle);
-        rightArm.write(220-angle);
+        rightArm.write(180-angle);
         delay(t);
       }  
   }
@@ -75,7 +75,7 @@ void moveServo(int s, int e, int t)
       for(angle = s; angle > e; angle --)
       {
         leftArm.write(angle);
-        rightArm.write(220-angle);
+        rightArm.write(180-angle);
         delay(t);
       }  
   }
