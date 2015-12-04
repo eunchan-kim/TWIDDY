@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class UIActivity extends Activity implements OnClickListener{
@@ -19,11 +20,9 @@ public class UIActivity extends Activity implements OnClickListener{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ui);
 		
-		Button btn_start = (Button) findViewById(R.id.btn_start);
-		Button btn_setting = (Button) findViewById(R.id.btn_setting);
+		ImageButton btn_start = (ImageButton) findViewById(R.id.start_btn);
 		
 		btn_start.setOnClickListener(this);
-		btn_setting.setOnClickListener(this);
 	}
 	
    
@@ -33,16 +32,10 @@ public class UIActivity extends Activity implements OnClickListener{
 		// TODO Auto-generated method stub
 		switch(v.getId())
 		{
-		case R.id.btn_start:
-			Intent it_start = new Intent(this, StartUI.class);
-			startActivity(it_start);
-			break;
-		case R.id.btn_setting:
-			
-			/*
-			Intent it_setting = new Intent(this, SettingUI.class);
-			startActivity(it_setting);
-			*/
+		case R.id.start_btn:
+			Intent it_twitter = new Intent(this, TwitLogin.class);
+			it_twitter.putExtra("type", EnumSNS.twitter);
+			startActivity(it_twitter);
 			break;
 		}
 	}

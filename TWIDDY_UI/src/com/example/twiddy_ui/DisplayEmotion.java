@@ -161,6 +161,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		this.stt_client.setSpeechRecognizeListener(stt_listener);
 
 		Button btn_hear = (Button) findViewById(R.id.btn_hear);
+		btn_hear.setBackgroundColor(Color.TRANSPARENT);
 		btn_hear.setOnClickListener(this);
 
 		/* for DEBUG and STT Error Handling */
@@ -220,12 +221,15 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		{
 		case R.id.btn_normal:
 			emotion.changeEmotion(EnumEmotion.Normal);
+			sendMessage("n");
 			break;
 		case R.id.btn_happy:
 			emotion.changeEmotion(EnumEmotion.Happy);
+			sendMessage("h");
 			break;
 		case R.id.btn_angry:
 			emotion.changeEmotion(EnumEmotion.Angry);
+			sendMessage("a");
 			break;
 		case R.id.btn_hear:
 			this.performSTT();
