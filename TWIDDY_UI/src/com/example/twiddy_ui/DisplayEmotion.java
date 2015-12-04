@@ -130,7 +130,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 
 		/* getting mentions thread */
 		this.mention_thread = new Timer();
-		this.mention_thread.scheduleAtFixedRate(new MentionThread(this), 0, 120000);
+		this.mention_thread.scheduleAtFixedRate(new MentionThread(this), 0, 20000);
 
 		/* Voice Related */
 		this.twiddy = new RunningTwiddy(this);
@@ -202,7 +202,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		{
 		case R.id.btn_normal:
 			emotion.changeEmotion(EnumEmotion.Normal);
-			sendMessage("s");
+			sendMessage("n");
 			break;
 		case R.id.btn_happy:
 			emotion.changeEmotion(EnumEmotion.Happy);
@@ -296,7 +296,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 						}
 						else if (score == 0) {
 							emotion.changeEmotion(EnumEmotion.Normal);
-							sendMessage("s");
+							sendMessage("n");
 						} else if (score > 0) {
 							emotion.changeEmotion(EnumEmotion.Happy);
 							sendMessage("h");

@@ -7,7 +7,7 @@
 #define rightArmPin 6
 #define ANGRY 'a'
 #define HAPPY 'h'
-#define SAD 's'
+#define NORMAL 'n'
 
 Servo leftArm;
 Servo rightArm;
@@ -38,16 +38,28 @@ void loop() {
       case ANGRY: 
       case ANGRY+1:
         moveServo(60, 120, 15);
+        moveServo(120, 60, 3);
+        moveServo(60, 120, 15);
+        moveServo(120, 60, 3);
+        moveServo(60, 120, 15);
+        moveServo(120, 60, 3);
         break;
       case HAPPY-1:
       case HAPPY:
       case HAPPY+1:
-        moveServo(120, 60, 15);
+        moveServoRev(40, 140, 3);
+        moveServoRev(140, 40, 3);
+        moveServoRev(40, 140, 3);
+        moveServoRev(140, 40, 3);
+        moveServoRev(40, 140, 3);
+        moveServoRev(140, 40, 3);
+        moveServo(40, 60, 5);
         break;
-      case SAD-1:
-      case SAD:
-      case SAD+1:
+      case NORMAL-1:
+      case NORMAL:
+      case NORMAL+1:
         moveServo(60, 120, 15);
+        delay(500);
         moveServo(120, 60, 15);
         break;
       default:
@@ -76,6 +88,28 @@ void moveServo(int s, int e, int t)
       {
         leftArm.write(angle);
         rightArm.write(180-angle);
+        delay(t);
+      }  
+  }
+}
+
+void moveServoRev(int s, int e, int t)
+{ 
+  if(s < e)
+  {
+      for(angle = s; angle < e; angle ++)
+      {
+        leftArm.write(angle);
+        rightArm.write(angle);
+        delay(t);
+      }  
+  }
+  else
+  {
+      for(angle = s; angle > e; angle --)
+      {
+        leftArm.write(angle);
+        rightArm.write(angle);
         delay(t);
       }  
   }
