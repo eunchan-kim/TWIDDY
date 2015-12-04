@@ -24,7 +24,7 @@ enum RunningState {
 public class RunningTwiddy {
 	public static String ERROR_STT = "@@ERROR-STT@@";
 
-	private RunningState state = RunningState.waiting;
+	public RunningState state = RunningState.waiting;
 	private DisplayEmotion parent;
 
 	private String uploadMsg = "";
@@ -85,13 +85,14 @@ public class RunningTwiddy {
 		return this.state == RunningState.stop;
 	}
 
-	public void getNewMention(String msg) {
+	public boolean getNewMention(String sender, String msg) {
 		if (this.state == RunningState.waiting) {
 			this.state = RunningState.askToRead;
-			this.alarmedMsg = TextHandler.feedToSentence(msg);
-			this.parent.showEmotion(this.alarmedMsg);
-			this.parent.performTTS(TextHandler.getSender(msg) + "님으로 부터 멘션이 도착했습니다. 읽을까요?");
+			this.alarmedMsg = TextHandler.feedToSentence(msg);			
+			this.parent.performTTS(sender + "님으로 부터 멘션이 도착했지 말입니다. 읽어도 되겠습니까?");
+			return true;
 		}
+		return false;
 	}
 
 	public void handleTTSResult() {
@@ -130,9 +131,12 @@ public class RunningTwiddy {
 
 	public void handleSTTResult(String msg) {
 		if (!isStop() && msg.equals(ERROR_STT)) {
+			Log.e("HANDLESTT", "ERROR_STT");
 			if (this.errCount > 3) {
+				Log.e("HANDLESTT", "reset");
 				reset();
 			} else {
+				Log.e("HANDLESTT", "errCount++");
 				this.errCount++;
 			}
 			this.parent.performSTT();
@@ -172,7 +176,8 @@ public class RunningTwiddy {
 		switch (this.state) {
 		case upload:
 			this.reset();
-			this.parent.performTTS("업로드가 완료되었습니다.");
+			this.parent.performTTS("업로드 완료했지 말입니다.");
+			this.parent.showEnumEmotion(EnumEmotion.Happy);
 			break;
 		default:
 			Log.e("ERROR", runningState(this.state) + " state does not handles endedUpload()");
@@ -180,24 +185,119 @@ public class RunningTwiddy {
 	}
 
 	private void STTtransitionFromWating(String msg) {
-		EnumCommand cmdCode = TextHandler.checkCommand(msg);
+		EnumCommand cmdCode = TextHandler.checkCommandExtend(msg);
+		int rand;
 		switch (cmdCode) {
 		case startRecording:
 			this.state = RunningState.startRecording;
-			this.parent.performTTS("네!");
+			this.parent.performTTS("내용을 말씀해주시지 말입니다.");
+			this.parent.showEnumEmotion(EnumEmotion.Happy);
+			break;
+		case hi:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("반가워!");
+				break;
+			case 1:
+				this.parent.performTTS("안녕!");
+				break;
+			case 2:
+				this.parent.performTTS("방가 방가!");
+				break;
+			}			
+			this.parent.showEnumEmotion(EnumEmotion.Start);
+			break;
+		case compliment:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("고마워!");
+				break;
+			case 1:
+				this.parent.performTTS("이 정도 쯤이야!");
+				break;
+			case 2:
+				this.parent.performTTS("유어 웰컴");
+				break;
+			}
+			this.parent.showEnumEmotion(EnumEmotion.Happy);
+			break;
+		case detention:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("히잉 미안해");
+				break;
+			case 1:
+				this.parent.performTTS("내가 잘못했어");
+				break;
+			case 2:
+				this.parent.performTTS("훌쩍 훌쩍");
+				break;
+			}
+			this.parent.showEnumEmotion(EnumEmotion.Angry);
+			break;
+		case who:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("나는 너의 친구 테디베어야");
+				break;
+			case 1:
+				this.parent.performTTS("나는 자바 코드로 만들어진 트위디야. 가비지 컬렉터가 일품이지 후후");
+				break;
+			case 2:
+				this.parent.performTTS("나를 트위디라고 불렀을 때 나는 너에게 한마리의 트위디가 되었다.");
+				break;
+			}
+			this.parent.showEnumEmotion(EnumEmotion.Explain);
+			break;
+		case where:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("나는 대전에서 태어났어");
+				break;
+			case 1:
+				this.parent.performTTS("나는 전산학프로젝트에서 태어났어");
+				break;
+			case 2:
+				this.parent.performTTS("나는 엔원에서 태어났어");
+				break;
+			}			
+			this.parent.showEnumEmotion(EnumEmotion.Explain);
+			break;
+		case what:
+			rand = (int)(Math.random()*3);
+			switch(rand) {
+			case 0:
+				this.parent.performTTS("너의 이야기를 듣고있어.");
+				break;
+			case 1:
+				this.parent.performTTS("보면 모르니?");
+				break;
+			case 2:
+				this.parent.performTTS("여기서 빠져나갈 방법을 찾고있어");
+				break;
+			}
+			this.parent.showEnumEmotion(EnumEmotion.Explain);
 			break;
 		case yes:
 		case no:
 		case none:
-			this.parent.performTTS("뭐라고하셨죠?.");
+			this.parent.performTTS("잘 못알아들었습니다.");
+			this.parent.showEnumEmotion(EnumEmotion.Normal);
 			break;
+		
 		}
 	}
 
 	private void STTtransitionFromRecording(String msg) {
 		this.state = RunningState.askToUpload;
 		this.uploadMsg = TextHandler.sentenceToFeed(msg);
-		this.parent.performTTS(TextHandler.askToUpload(msg));
+		this.parent.performTTS(msg + " 라고 말씀하셨지 말입니다. 트위터에 올려도 되겠습니까?");
+		this.parent.showEnumEmotion(EnumEmotion.Normal);
 	}
 
 	private void TTStransitionFromWaiting() {
@@ -227,6 +327,7 @@ public class RunningTwiddy {
 
 	private void TTStransitionFromReadFeed() {
 		this.reset();
+		this.parent.performSTT();
 	}
 
 	private void STTtransitionFromAnsweringUpload(String msg) {
@@ -234,14 +335,17 @@ public class RunningTwiddy {
 		switch (cmdCode) {
 		case yes:
 			this.parent.uploadTweet(this.uploadMsg);
-			this.state = RunningState.upload;
-			break;
-		case startRecording:
+			this.state = RunningState.upload;				
+			break;		
 		case no:
-		case none:
 			this.reset();
 			this.state = RunningState.askAgain;
-			this.parent.performTTS("다른 메시지를 올릴까요?");
+			this.parent.performTTS("다른 하실 말씀 있으십니까?");
+			break;
+		case startRecording:
+		case none:
+			this.state = RunningState.askToUpload;
+			this.parent.performTTS("다시 말씀해 주세요.");
 			break;
 		}
 	}
@@ -251,14 +355,18 @@ public class RunningTwiddy {
 		switch (cmdCode) {
 		case yes:
 			this.state = RunningState.startRecording;
-			this.parent.performTTS("뭐라고 올릴까요?");
+			this.parent.performTTS("뭐라고 올리지 말입니까?");
+			break;		
+		case no:		
+			this.reset();
+			this.parent.performTTS("올리지 않겠지 말입니다.");
+			this.parent.showEnumEmotion(EnumEmotion.Normal);
 			break;
 		case startRecording:
-		case no:
 		case none:
-			this.reset();
-			this.parent.performTTS("업로드를 취소합니다.");
-			break;
+			this.state = RunningState.askAgain;
+			this.parent.performTTS("다른 하실 말씀 있으십니까?");
+			break;			
 		}
 	}
 
@@ -267,14 +375,17 @@ public class RunningTwiddy {
 		switch (cmdCode) {
 		case yes:
 			this.state = RunningState.readFeed;
+			this.parent.showEmotion(this.alarmedMsg);
 			this.parent.performTTS(this.alarmedMsg);
 			break;		
 		case no:
 			this.reset();
-			this.parent.performTTS("읽지 않겠습니다.");
+			this.parent.performTTS("읽지 않겠지 말입니다.");
 			break;
 		case startRecording:
 		case none:
+			this.state = RunningState.askToRead;
+			this.parent.performTTS("다시 말씀해주시지 말입니다.");
 			break;
 		}
 

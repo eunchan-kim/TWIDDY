@@ -3,7 +3,6 @@ package com.example.twiddy_ui;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -14,8 +13,6 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +23,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import net.daum.mf.speech.api.SpeechRecognizeListener;
 import net.daum.mf.speech.api.SpeechRecognizerClient;
@@ -38,7 +36,9 @@ import twitter4j.TwitterException;
 
 class MentionThread extends TimerTask {
 	private DisplayEmotion parent;
+	private String last_sender;
 	private String last_mention;
+	
 	MentionThread(DisplayEmotion _parent) {
 		this.parent = _parent;
 		this.last_mention = "";
@@ -47,15 +47,22 @@ class MentionThread extends TimerTask {
 	@Override
 	public void run() {
 		try {
-			List<twitter4j.Status> statuses = this.parent.twitter.getMentionsTimeline();
+			List<twitter4j.Status> statuses = this.parent.twitter.getMentionsTimeline();			
 			Log.e("MENTION","Get new mention");
-			if (statuses.isEmpty() == false) {
+			if (statuses.isEmpty() == false) {				
 				String current_mention = statuses.get(0).getText();
 				if (this.last_mention.equals("")) {
 					this.last_mention = current_mention;
 				} else if (!this.last_mention.equals(current_mention)) {
-					this.last_mention = current_mention;
-					this.parent.getNewMention(this.last_mention);
+					this.last_sender = statuses.get(0).getUser().getName();						
+					if(this.parent.getNewMention(this.last_sender, current_mention)) {
+						// Mention Read Success
+						this.last_mention = current_mention;						
+					}
+					else {
+						this.parent.isMentionStored = true;
+					}
+					Log.e("MENTION", "last sender : " + this.last_sender);
 					Log.e("MENTION", "last mention : " + current_mention);
 				}
 			}
@@ -78,12 +85,14 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	public Twitter twitter;
 	private Timer mention_thread;
 	private Timer debug_thread;
-	public Handler handler;
 	Emotion emotion;
 	private static final int REQUEST_CONNECT_DEVICE = 1;
 	private static final int REQUEST_ENABLE_BT = 2;
 	private BluetoothService btService = null;
-
+	private TextView recording;
+	private int waitCnt = 0;
+	public boolean isMentionStored = false;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -95,6 +104,9 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		btn_normal.setOnClickListener(this);
 		btn_happy.setOnClickListener(this);
 		btn_angry.setOnClickListener(this);
+		
+		recording = (TextView)findViewById(R.id.txt_recording);
+		recording.setVisibility(View.GONE);
 
 		emotion = new Emotion(this);
 		emotion.changeEmotion(EnumEmotion.Normal);
@@ -104,13 +116,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		/* Login to Twitter */
 		Intent intent = getIntent();
 		this.twitter = (Twitter) intent.getExtras().get("twitter");
-
-		handler = new Handler(){
-			@Override
-			public void handleMessage(Message msg){
-				emotion.changeEmotion(EnumEmotion.values()[msg.what]);
-			}
-		};
 
 		/* keep display on */
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -130,7 +135,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 
 		/* getting mentions thread */
 		this.mention_thread = new Timer();
-		this.mention_thread.scheduleAtFixedRate(new MentionThread(this), 0, 20000);
+		this.mention_thread.scheduleAtFixedRate(new MentionThread(this), 0, 30000);
 
 		/* Voice Related */
 		this.twiddy = new RunningTwiddy(this);
@@ -140,7 +145,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		TextToSpeechListener tts_listener = new TTSListener(this);
 		this.tts_client = new TextToSpeechClient.Builder()
 				.setApiKey(NEWTONE_API_KEY)
-				.setSpeechSpeed(1.0)
+				.setSpeechSpeed(1.2)
 				.setSpeechVoice(TextToSpeechClient.VOICE_WOMAN_DIALOG_BRIGHT)
 				.setListener(tts_listener)
 				.build();
@@ -158,11 +163,24 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		Button btn_hear = (Button) findViewById(R.id.btn_hear);
 		btn_hear.setOnClickListener(this);
 
-		/* for DEBUG */
+		/* for DEBUG and STT Error Handling */
 		debug_thread = new Timer();
 		debug_thread.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
+				waitCnt++;				
+				if(waitCnt > 3)	{
+					Log.e("STT ERROR", "restart!");
+					if (!twiddy.isStop()) {
+						stt_client.stopRecording();
+						stt_client.startRecording(false);
+					}
+				}
+				if(isMentionStored) {
+					// TODO: Think later
+					isMentionStored = false;
+					mention_thread.notify();					
+				}
 				Log.e("Timer", twiddy.getStatus());
 			}
 		}, 0, 10000);
@@ -202,15 +220,12 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		{
 		case R.id.btn_normal:
 			emotion.changeEmotion(EnumEmotion.Normal);
-			sendMessage("n");
 			break;
 		case R.id.btn_happy:
 			emotion.changeEmotion(EnumEmotion.Happy);
-			sendMessage("h");
 			break;
 		case R.id.btn_angry:
 			emotion.changeEmotion(EnumEmotion.Angry);
-			sendMessage("a");
 			break;
 		case R.id.btn_hear:
 			this.performSTT();
@@ -219,21 +234,31 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	}
 
 	/* Voice Activity Methods */
-	public void performTTS(String msg) {
-		Log.e("TTS", msg);
-		if (!this.twiddy.isStop()) {
-			this.tts_client.play(msg);
-		}
+	public void performTTS(final String msg) {
+		this.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				Log.e("TTS", msg);
+				if (!twiddy.isStop()) {
+					tts_client.play(msg);
+					recording.setVisibility(View.GONE);
+				}
+			}
+		});
 	}
 
 	public void performSTT() {
 		Log.e("STT", "start");
 		if (!this.twiddy.isStop()) {
+			this.waitCnt = 0;
 			this.stt_client.startRecording(false);
 			Log.e("STT", "started");
+			recording.setVisibility(View.VISIBLE);
 		}
 	}
 
+	
 	public void showSTTReuslt(final String result_text) {
 		this.runOnUiThread(new Runnable() {
 			public void run() {				
@@ -250,12 +275,9 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		});
 	}
 
-	public void getNewMention(final String msg) {
-		this.runOnUiThread(new Runnable() {
-			public void run() {
-				twiddy.getNewMention(msg);
-			}
-		});
+	public boolean getNewMention(final String sender, final String msg) {
+		stt_client.stopRecording();
+		return twiddy.getNewMention(sender, msg);
 	}
 
 	public void uploadTweet(final String msg) {
@@ -279,6 +301,35 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		});
 		thread.start();
 	}
+	
+	public void showEnumEmotion(final EnumEmotion e) {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				switch(e) {
+				case Normal:
+					emotion.changeEmotion(EnumEmotion.Normal);
+					sendMessage("n");
+					break;
+				case Happy:
+					emotion.changeEmotion(EnumEmotion.Happy);
+					sendMessage("h");
+					break;
+				case Angry:
+					emotion.changeEmotion(EnumEmotion.Angry);
+					sendMessage("a");
+					break;
+				case Start:
+					emotion.changeEmotion(EnumEmotion.Happy);
+					sendMessage("s");
+					break;
+				case Explain:
+					emotion.changeEmotion(EnumEmotion.Normal);
+					sendMessage("e");
+					break;
+				}
+			}
+		});
+	}
 
 	public void showEmotion(final String msg) {
 
@@ -288,7 +339,8 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 				// TODO Auto-generated method stub
 				
 				final int score = EmotionExtractor.getEmotion(msg);
-
+				Log.e("EMOTION MSG", msg);
+				Log.e("EMOTION SCORE", "SCORE: "+score);
 				runOnUiThread(new Runnable() {
 					public void run() {
 						if (score == -1234) {

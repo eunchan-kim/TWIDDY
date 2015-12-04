@@ -4,5 +4,11 @@ public enum EnumCommand {
 	startRecording,
 	yes,
 	no,
-	none
+	none,
+	hi,
+	compliment,
+	detention,
+	who,
+	where,
+	what
 }
