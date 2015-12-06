@@ -21,7 +21,7 @@ public class TextHandler {
 	private static final ArrayList<String> who = new ArrayList<String>( 
 			Arrays.asList("누구야", "누구니", "넌누구니", "넌누구야", "너는누구니", "누구냐넌") );
 	private static final ArrayList<String> where = new ArrayList<String>( 
-			Arrays.asList("어디서왔어", "어디서왔니", "너는어디서왔니",  "너는어디서왔어", "넌어디서왔니", "넌어디왔니", "넌어디서태어났니", "난어디서태어났니", "너는어디서태어났니") );
+			Arrays.asList("어디서왔어","넌어디서왔어","난어디서왔어","넌어디서태어났어","난어디서태어났어","어디서왔어", "어디서왔니", "너는어디서왔니",  "너는어디서왔어", "넌어디서왔니", "넌어디왔니", "넌어디서태어났니", "난어디서태어났니", "너는어디서태어났니") );
 	private static final ArrayList<String> what = new ArrayList<String>( 
 			Arrays.asList("뭐해", "뭐하니", "뭐하는중이야", "머해") );
 	
