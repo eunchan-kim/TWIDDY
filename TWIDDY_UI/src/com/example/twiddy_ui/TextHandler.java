@@ -7,11 +7,11 @@ import android.util.Log;
 
 public class TextHandler {
 	private static final ArrayList<String> calling_twiddy = new ArrayList<String>( 
-			Arrays.asList("트위디","트위기", "트위지", "트위티", "treaty", "트위터", "트리디비", "테디", "데디", "태디", "떄디") );
+			Arrays.asList("트위디", "jd", "jdc", "돼지", "트위기", "트위지", "트위티", "treaty", "트위터", "트리디비", "테디", "데디", "태디", "떄디") );
 	private static final ArrayList<String> yes = new ArrayList<String>( 
-			Arrays.asList("응","어", "허", "러", "여", "으", "알았어", "오케이", "OK", "ok", "Ok", "yes", "그래", "그랩", "이레", "구래", "그레", "구레") );
+			Arrays.asList("응", "있어", "있다고", "있다구" ,"어", "허", "러", "여", "으", "알았어", "오케이", "OK", "ok", "Ok", "yes", "그래", "그랩", "이레", "구래", "그레", "구레") );
 	private static final ArrayList<String> no = new ArrayList<String>( 
-			Arrays.asList("아니", "알리", "아내", "아미", "노", "no", "No", "NO", "싫어", "실어", "시러", "없어", "업어", "업서") );
+			Arrays.asList("아니", "하니", "알리", "아내", "아미", "노", "no", "No", "NO", "싫어", "실어", "시러", "없어", "업어", "업서", "없다구", "없다고") );
 	private static final ArrayList<String> hi = new ArrayList<String>( 
 			Arrays.asList("안녕", "안영", "하이", "hi", "Hi", "안녕하세요", "헤이", "어이") );
 	private static final ArrayList<String> compliment = new ArrayList<String>( 
@@ -21,7 +21,7 @@ public class TextHandler {
 	private static final ArrayList<String> who = new ArrayList<String>( 
 			Arrays.asList("누구야", "누구니", "넌누구니", "넌누구야", "너는누구니", "누구냐넌") );
 	private static final ArrayList<String> where = new ArrayList<String>( 
-			Arrays.asList("어디서왔어", "어디서왔니", "너는어디서왔니",  "너는어디서왔어", "넌어디서왔니", "넌어디왔니", "넌어디서태어났니", "너는어디서태어났니") );
+			Arrays.asList("어디서왔어", "어디서왔니", "너는어디서왔니",  "너는어디서왔어", "넌어디서왔니", "넌어디왔니", "넌어디서태어났니", "난어디서태어났니", "너는어디서태어났니") );
 	private static final ArrayList<String> what = new ArrayList<String>( 
 			Arrays.asList("뭐해", "뭐하니", "뭐하는중이야", "머해") );
 	

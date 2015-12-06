@@ -1,8 +1,13 @@
 package com.example.twiddy_ui;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +28,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import net.daum.mf.speech.api.SpeechRecognizeListener;
@@ -36,12 +42,13 @@ import twitter4j.TwitterException;
 
 class MentionThread extends TimerTask {
 	private DisplayEmotion parent;
-	private String last_sender;
 	private String last_mention;
+	private String last_sender;
 	
 	MentionThread(DisplayEmotion _parent) {
 		this.parent = _parent;
 		this.last_mention = "";
+		this.last_sender = "";
 	}
 
 	@Override
@@ -49,21 +56,22 @@ class MentionThread extends TimerTask {
 		try {
 			List<twitter4j.Status> statuses = this.parent.twitter.getMentionsTimeline();			
 			Log.e("MENTION","Get new mention");
-			if (statuses.isEmpty() == false) {				
+			if (statuses.isEmpty() == false) {		
+				
 				String current_mention = statuses.get(0).getText();
-				if (this.last_mention.equals("")) {
-					this.last_mention = current_mention;
-				} else if (!this.last_mention.equals(current_mention)) {
-					this.last_sender = statuses.get(0).getUser().getName();						
-					if(this.parent.getNewMention(this.last_sender, current_mention)) {
-						// Mention Read Success
-						this.last_mention = current_mention;						
-					}
-					else {
-						this.parent.isMentionStored = true;
-					}
-					Log.e("MENTION", "last sender : " + this.last_sender);
-					Log.e("MENTION", "last mention : " + current_mention);
+				
+				if (last_mention.equals("")) {
+					last_mention = current_mention;	
+				} else if (!last_mention.equals(current_mention)) {
+					last_mention = current_mention;	
+					last_sender = statuses.get(0).getUser().getName();
+					MentionInfo minfo = new MentionInfo(last_mention, last_sender);
+					parent.qLock.lock();
+					Log.e("Mention Queue", "ENQUEUE 1");
+					parent.mentionQ.offer(minfo);
+					parent.qLock.unlock();
+					Log.e("MENTION", "last sender : " + last_sender);
+					Log.e("MENTION", "last mention : " + last_mention);
 				}
 			}
 		}
@@ -77,27 +85,47 @@ class MentionThread extends TimerTask {
 	}
 }
 
+class MentionInfo {
+	public String mention;
+	public String sender;
+	MentionInfo(String _m, String _s) {
+		this.mention = _m;
+		this.sender = _s;
+	}
+}
+
 public class DisplayEmotion  extends Activity implements OnClickListener{
 	public static String NEWTONE_API_KEY = "dcd2a896fab93d17a09e2d752ef0e145";
 	private TextToSpeechClient tts_client;
 	private SpeechRecognizerClient stt_client;
-	private RunningTwiddy twiddy;
+	public RunningTwiddy twiddy;
 	public Twitter twitter;
-	private Timer mention_thread;
+	private MentionThread mention_thread;
+	private Timer mention_timer;
 	private Timer debug_thread;
-	Emotion emotion;
 	private static final int REQUEST_CONNECT_DEVICE = 1;
 	private static final int REQUEST_ENABLE_BT = 2;
 	private BluetoothService btService = null;
 	private TextView recording;
 	private int waitCnt = 0;
 	public boolean isMentionStored = false;
+	private DisplayEmotion _this;
+	public Queue<MentionInfo> mentionQ;
+	public Lock qLock;
+	private LinearLayout bg;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_display);
-
+		
+		LinearLayout bg = (LinearLayout) findViewById(R.id.display_background);
+		bg.setBackgroundResource(R.drawable.normal);
+				
+		_this = this;
+		mentionQ = new LinkedList<MentionInfo>();
+		qLock = new ReentrantLock();
+		
 		Button btn_normal = (Button)findViewById(R.id.btn_normal);
 		Button btn_happy = (Button)findViewById(R.id.btn_happy);
 		Button btn_angry = (Button)findViewById(R.id.btn_angry);
@@ -108,10 +136,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		recording = (TextView)findViewById(R.id.txt_recording);
 		recording.setVisibility(View.GONE);
 
-		emotion = new Emotion(this);
-		emotion.changeEmotion(EnumEmotion.Normal);
-		FrameLayout frame = (FrameLayout)findViewById(R.id.layout_display);
-		frame.addView(emotion, 0);
 
 		/* Login to Twitter */
 		Intent intent = getIntent();
@@ -134,8 +158,9 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		}
 
 		/* getting mentions thread */
-		this.mention_thread = new Timer();
-		this.mention_thread.scheduleAtFixedRate(new MentionThread(this), 0, 30000);
+		this.mention_thread = new MentionThread(this);
+		this.mention_timer = new Timer();
+		this.mention_timer.scheduleAtFixedRate(this.mention_thread, 0, 300000); // 5 min
 
 		/* Voice Related */
 		this.twiddy = new RunningTwiddy(this);
@@ -163,29 +188,36 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		Button btn_hear = (Button) findViewById(R.id.btn_hear);
 		btn_hear.setBackgroundColor(Color.TRANSPARENT);
 		btn_hear.setOnClickListener(this);
-
+		
 		/* for DEBUG and STT Error Handling */
 		debug_thread = new Timer();
 		debug_thread.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
 				waitCnt++;				
-				if(waitCnt > 3)	{
+				if(waitCnt > 2)	{
 					Log.e("STT ERROR", "restart!");
 					if (!twiddy.isStop()) {
 						stt_client.stopRecording();
 						stt_client.startRecording(false);
 					}
 				}
-				if(isMentionStored) {
-					// TODO: Think later
-					isMentionStored = false;
-					mention_thread.notify();					
+				
+				if(twiddy.state == RunningState.waiting) {
+					qLock.lock();
+					if(mentionQ.peek() != null) {
+						Log.e("Mention Queue", "POP 1");
+						MentionInfo minfo = (MentionInfo)mentionQ.poll();
+						getNewMention(minfo.sender, minfo.mention);
+					}
+					qLock.unlock();					
 				}
+				
 				Log.e("Timer", twiddy.getStatus());
 			}
 		}, 0, 10000);
 	}
+	
 	
 	 private void sendMessage(String message) {
 	        if (btService.getState() != BluetoothService.STATE_CONNECTED) {
@@ -220,16 +252,13 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		switch(v.getId())
 		{
 		case R.id.btn_normal:
-			emotion.changeEmotion(EnumEmotion.Normal);
-			sendMessage("n");
+			showEnumEmotion(EnumEmotion.Normal);
 			break;
 		case R.id.btn_happy:
-			emotion.changeEmotion(EnumEmotion.Happy);
-			sendMessage("h");
+			showEnumEmotion(EnumEmotion.Happy);
 			break;
 		case R.id.btn_angry:
-			emotion.changeEmotion(EnumEmotion.Angry);
-			sendMessage("a");
+			showEnumEmotion(EnumEmotion.Angry);
 			break;
 		case R.id.btn_hear:
 			this.performSTT();
@@ -279,9 +308,12 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		});
 	}
 
-	public boolean getNewMention(final String sender, final String msg) {
-		stt_client.stopRecording();
-		return twiddy.getNewMention(sender, msg);
+	public void getNewMention(final String sender, final String msg) {
+		this.runOnUiThread(new Runnable() {
+			public void run() {
+				twiddy.getNewMention(sender, msg);
+			}
+		});		
 	}
 
 	public void uploadTweet(final String msg) {
@@ -311,23 +343,28 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 			public void run() {
 				switch(e) {
 				case Normal:
-					emotion.changeEmotion(EnumEmotion.Normal);
+					bg = (LinearLayout) findViewById(R.id.display_background);
+					bg.setBackgroundResource(R.drawable.normal);
 					sendMessage("n");
 					break;
 				case Happy:
-					emotion.changeEmotion(EnumEmotion.Happy);
+					bg = (LinearLayout) findViewById(R.id.display_background);
+					bg.setBackgroundResource(R.drawable.happy);
 					sendMessage("h");
 					break;
 				case Angry:
-					emotion.changeEmotion(EnumEmotion.Angry);
+					bg = (LinearLayout) findViewById(R.id.display_background);
+					bg.setBackgroundResource(R.drawable.angry);
 					sendMessage("a");
 					break;
 				case Start:
-					emotion.changeEmotion(EnumEmotion.Happy);
+					bg = (LinearLayout) findViewById(R.id.display_background);
+					bg.setBackgroundResource(R.drawable.happy);
 					sendMessage("s");
 					break;
 				case Explain:
-					emotion.changeEmotion(EnumEmotion.Normal);
+					bg = (LinearLayout) findViewById(R.id.display_background);
+					bg.setBackgroundResource(R.drawable.happy);
 					sendMessage("e");
 					break;
 				}
@@ -351,15 +388,12 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 							//Do nothing (error state)
 						}
 						else if (score == 0) {
-							emotion.changeEmotion(EnumEmotion.Normal);
-							sendMessage("n");
+							showEnumEmotion(EnumEmotion.Normal);
 						} else if (score > 0) {
-							emotion.changeEmotion(EnumEmotion.Happy);
-							sendMessage("h");
+							showEnumEmotion(EnumEmotion.Happy);
 						} 
 						else if (score < 0) {
-							emotion.changeEmotion(EnumEmotion.Angry);
-							sendMessage("a");
+							showEnumEmotion(EnumEmotion.Angry);
 						}
 					}
 				});
@@ -376,7 +410,8 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		this.tts_client.stop();
 		this.twiddy.stop();
 		this.mention_thread.cancel();
-		this.mention_thread.purge();
+		this.mention_timer.cancel();
+		this.mention_timer.purge();
 		this.debug_thread.cancel();
 		this.debug_thread.purge();
 		super.onBackPressed();
@@ -394,164 +429,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		super.onDestroy();
 		TextToSpeechManager.getInstance().finalizeLibrary();
 		SpeechRecognizerManager.getInstance().finalizeLibrary();
-	}
-
-	protected class Emotion extends View{
-		Thread animator = null;
-		Paint pnt;
-		DisplayMetrics displayMetrics;
-		int deviceWidth, deviceHeight;
-		float startAngle;
-		float mouseTop, mouseBottom;
-		int radius, eyeRadius;
-		RectF rect;
-		EnumEmotion currentEmotion;
-		EmotionAnimation eAnim;
-
-		public Emotion(Context context) {
-			super(context);
-			// TODO Auto-generated constructor stub
-			pnt = new Paint();
-			displayMetrics = new DisplayMetrics();
-			getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);			 
-			deviceWidth = displayMetrics.widthPixels;
-			deviceHeight = displayMetrics.heightPixels;
-			radius = deviceWidth/4;
-			eyeRadius = radius/6;
-			rect = new RectF();
-			currentEmotion = EnumEmotion.Normal; //Default: Normal
-			startAngle = 30f;
-			mouseTop = deviceHeight/5*2+eyeRadius*3;
-			mouseBottom = deviceHeight/5*2+eyeRadius*3;
-			eAnim = new EmotionAnimation(currentEmotion);
-			postInvalidate();
-		}
-
-		public void changeEmotion(EnumEmotion e)
-		{
-			currentEmotion = e;
-			eAnim.changeEmotion(e);
-			this.startAnimation(eAnim);
-			postInvalidate();
-		}
-
-		@Override
-		protected void onDraw(Canvas canvas) {
-			// TODO Auto-generated method stub
-			super.onDraw(canvas);
-
-			switch(currentEmotion)
-			{
-			case Normal:
-				canvas.drawColor(Color.WHITE);
-				break;
-			case Happy:
-				canvas.drawColor(Color.GREEN);
-				break;
-			case Angry:
-				canvas.drawColor(Color.RED);
-				break;
-			}     
-
-			pnt.setStyle(Style.FILL);
-			pnt.setColor(Color.YELLOW);
-			canvas.drawCircle(deviceWidth/2, deviceHeight/5*2, radius, pnt);
-			pnt.setColor(Color.BLACK);
-			canvas.drawCircle(deviceWidth/2-eyeRadius*2, deviceHeight/5*2-eyeRadius, eyeRadius, pnt);
-			canvas.drawCircle(deviceWidth/2+eyeRadius*2, deviceHeight/5*2-eyeRadius, eyeRadius, pnt);
-			pnt.setStrokeWidth(10);
-			pnt.setStyle(Style.STROKE);
-
-			rect.set(deviceWidth/2-eyeRadius*3,mouseTop,deviceWidth/2+eyeRadius*3,mouseBottom);                            
-			canvas.drawArc(rect, startAngle, 120, false, pnt);
-
-		}
-
-		protected class EmotionAnimation extends Animation {
-			EnumEmotion mEmotion;
-			EnumEmotion prevEmotion;
-
-			float normalStart = 30f;
-			float happyStart = 30f;
-			float angryStart = 210f;
-
-			float normalTop = deviceHeight/5*2+eyeRadius*3;
-			float happyTop = deviceHeight/5*2;
-			float angryTop = deviceHeight/5*2+eyeRadius*3;
-
-			float normalBottom = deviceHeight/5*2+eyeRadius*3;
-			float happyBottom = deviceHeight/5*2+eyeRadius*3;
-			float angryBottom = deviceHeight/5*2+eyeRadius*6;
-
-			float curTop;
-			float curBottom;
-
-			public EmotionAnimation(EnumEmotion etype) {
-				mEmotion = etype;
-
-				setDuration(1000);
-				setInterpolator(new LinearInterpolator());
-			}
-
-			public void changeEmotion(EnumEmotion etype) {
-				prevEmotion = mEmotion;
-				curTop = emotion.mouseTop;
-				curBottom = emotion.mouseBottom;
-				mEmotion = etype;
-			}
-
-			@Override
-			protected void applyTransformation(float interpolatedTime, Transformation t) {
-				// TODO Auto-generated method stub
-				float fullTime = interpolatedTime * 2;
-
-				switch(mEmotion)
-				{
-				case Normal:
-					if(fullTime < 1.f) {
-						emotion.mouseTop = curTop * (1-fullTime) + normalTop * fullTime;
-						emotion.mouseBottom = curBottom * (1-fullTime) + normalBottom * fullTime;
-					}	            	        	
-					break;
-				case Happy:
-					if(prevEmotion == EnumEmotion.Normal) {
-						if(fullTime < 1.f) {
-							emotion.mouseTop = curTop * (1-fullTime) + happyTop * fullTime;
-							emotion.startAngle = happyStart;		
-						}
-					}
-					else {
-						if(fullTime < 1.f) {
-							emotion.mouseBottom = curBottom * (1-fullTime) + happyBottom * fullTime;
-						}
-						else {
-							emotion.mouseTop = curTop * (2-fullTime) + happyTop * (fullTime-1);
-							emotion.startAngle = happyStart;
-						}
-					}	            	
-					break;
-				case Angry:
-					if(prevEmotion == EnumEmotion.Normal) {
-						if(fullTime < 1.f) {
-							emotion.mouseBottom = curBottom * (1-fullTime) + angryBottom * fullTime;
-							emotion.startAngle = angryStart;
-						}
-					}
-					else {
-						if(fullTime < 1.f) {
-							emotion.mouseTop = curTop * (1-fullTime) + angryTop * fullTime;
-						}
-						else {
-							emotion.mouseBottom = curBottom * (2-fullTime) + angryBottom * (fullTime-1);
-							emotion.startAngle = angryStart;
-						}
-					}	
-					break;
-				}   
-				invalidate();
-			}
-
-		}
 	}
 
 }
