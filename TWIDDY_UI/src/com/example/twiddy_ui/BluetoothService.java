@@ -3,8 +3,8 @@
  * https://android.googlesource.com/platform/development/+/eclair-passion-release/samples/BluetoothChat/src/com/example/android/BluetoothChat
  * For bluetooth connection
  * 
- * Main developers: ÇÑÁÖÇü
- * Debuggers: ÇÑÁÖÇü
+ * Main developers: í•œì£¼í˜•
+ * Debuggers: í•œì£¼í˜•
  * 
  * Original Licence is below. (Apache License Version 2.0)
  */
@@ -138,7 +138,7 @@ public class BluetoothService {
 		}
 	}
 
-	// ¿¬°á ½ÇÆÐÇßÀ»¶§
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	private void connectionFailed() {
 		setState(STATE_LISTEN);
 	}

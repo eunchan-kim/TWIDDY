@@ -1,6 +1,6 @@
 /*
- * Main developers: ·ù¿¬Èñ
- * Debuggers: ·ù¿¬Èñ
+ * Main developers: ë¥˜ì—°í¬
+ * Debuggers: ë¥˜ì—°í¬
  */
 package com.example.twiddy_ui;
 
