@@ -1,6 +1,8 @@
+/*
+ * Main developers: 茄林屈, 林技泅
+ * Debuggers: 茄林屈, 林技泅
+ */
 package com.example.twiddy_ui;
-
-import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -13,9 +15,7 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import twitter4j.*;
-import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
-import twitter4j.conf.ConfigurationBuilder;
 
 
 public class TwitLogin extends Activity {

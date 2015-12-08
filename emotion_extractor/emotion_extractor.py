@@ -1,5 +1,13 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
+'''
+	Used Open source library 'konlpy' from
+	http://konlpy.org/ko/v0.4.3/#license
+	For Korean NLP
+
+	Main developers: 김은찬
+	Debuggers: 김은찬
+'''
 from konlpy.tag import Kkma
 from konlpy.utils import pprint
 import urllib

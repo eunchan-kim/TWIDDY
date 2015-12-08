@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
+'''
+    Main developers: 김은찬
+    Debuggers: 김은찬
+'''
 import requests
 import json
 

@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	Main developer: 한주형
+	Debugger: 한주형
+ -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/main_img"

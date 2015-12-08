@@ -1,3 +1,7 @@
+/*
+ * Main developers: 林技泅, 茄林屈
+ * Debuggers: 林技泅, 茄林屈
+ */
 package com.example.twiddy_ui;
 
 import twitter4j.Twitter;

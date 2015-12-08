@@ -1,5 +1,9 @@
 #! /usr/bin/python2.7
 # -*- coding: utf-8 -*-
+'''
+	Main developers: 김은찬
+	Debuggers: 김은찬
+'''
 from werkzeug.wrappers import Request, Response
 from werkzeug.serving import run_simple
 

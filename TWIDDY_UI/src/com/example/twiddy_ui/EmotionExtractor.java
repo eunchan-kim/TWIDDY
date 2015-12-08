@@ -1,3 +1,7 @@
+/*
+ * Main developers: ·ù¿¬Èñ, ±èÀºÂù
+ * Debuggers: ·ù¿¬Èñ, ±èÀºÂù
+ */
 package com.example.twiddy_ui;
 
 import java.util.ArrayList;

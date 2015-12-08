@@ -1,3 +1,7 @@
+/*
+ * Main developers: ·ù¿¬Èñ
+ * Debuggers: ·ù¿¬Èñ
+ */
 package com.example.twiddy_ui;
 
 import android.util.Log;

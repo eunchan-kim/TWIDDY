@@ -1,3 +1,7 @@
+/*
+  Main developer: 주세현, 한주형
+  Debugger: 주세현
+*/
 #include <SoftwareSerial.h>
 #include <Servo.h>
 

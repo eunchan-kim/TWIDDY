@@ -1,16 +1,15 @@
+/*
+ * Main developers: 한주형
+ * Debuggers: 한주형
+ */
 package com.example.twiddy_ui;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 public class UIActivity extends Activity implements OnClickListener{
 		
@@ -34,7 +33,6 @@ public class UIActivity extends Activity implements OnClickListener{
 		{
 		case R.id.start_btn:
 			Intent it_twitter = new Intent(this, TwitLogin.class);
-			it_twitter.putExtra("type", EnumSNS.twitter);
 			startActivity(it_twitter);
 			break;
 		}

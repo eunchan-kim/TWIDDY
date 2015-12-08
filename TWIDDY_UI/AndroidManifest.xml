@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	Main developer: 한주형, 류연희
+	Debugger: 한주형, 류연희
+ -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.twiddy_ui"
     android:versionCode="1"

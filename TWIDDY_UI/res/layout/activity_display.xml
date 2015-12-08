@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	Main developer: 한주형, 주세현
+	Debugger: 한주형, 주세현
+ -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/display_background"
     android:layout_width="match_parent"

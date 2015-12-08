@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+	Just use open source library from 
+	https://android.googlesource.com/platform/development/+/eclair-passion-release/samples/BluetoothChat/res/layout/device_name.xml?autodive=0%2F%2F
+	For Bluetooth layout
+	
+	Original Licence is below. (Apache License Version 2.0)
+ -->
 <!-- Copyright (C) 2009 The Android Open Source Project
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.

@@ -1,3 +1,7 @@
+/*
+ * Main developers: 한주형, 류연희
+ * Debuggers: 한주형, 류연희, 주세현
+ */
 package com.example.twiddy_ui;
 
 import java.util.LinkedList;
@@ -9,25 +13,15 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.RectF;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.Transformation;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -109,7 +103,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 	private TextView recording;
 	private int waitCnt = 0;
 	public boolean isMentionStored = false;
-	private DisplayEmotion _this;
 	public Queue<MentionInfo> mentionQ;
 	public Lock qLock;
 	private LinearLayout bg;
@@ -122,7 +115,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		LinearLayout bg = (LinearLayout) findViewById(R.id.display_background);
 		bg.setBackgroundResource(R.drawable.normal);
 				
-		_this = this;
 		mentionQ = new LinkedList<MentionInfo>();
 		qLock = new ReentrantLock();
 		
@@ -160,7 +152,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		/* getting mentions thread */
 		this.mention_thread = new MentionThread(this);
 		this.mention_timer = new Timer();
-		this.mention_timer.scheduleAtFixedRate(this.mention_thread, 0, 300000); // 5 min
+		this.mention_timer.scheduleAtFixedRate(this.mention_thread, 0, 120000); // 2 min
 
 		/* Voice Related */
 		this.twiddy = new RunningTwiddy(this);
