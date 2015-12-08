@@ -1,4 +1,8 @@
 /*
+ * Use Newtone Library (GNU LGPL License) from
+ * https://developers.daum.net/services/apis/newtone
+ * For voice recognition
+ * 
  * Main developers: 류연희
  * Debuggers: 류연희
  */

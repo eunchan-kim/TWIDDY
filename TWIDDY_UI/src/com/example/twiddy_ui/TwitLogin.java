@@ -1,4 +1,8 @@
 /*
+ * Use twitter4j Library (Apache License 2.0) from
+ * http://twitter4j.org/ko/
+ * For twitter api 
+ * 
  * Main developers: 한주형, 주세현
  * Debuggers: 한주형, 주세현
  */
