@@ -89,7 +89,8 @@ class MentionInfo {
 }
 
 public class DisplayEmotion  extends Activity implements OnClickListener{
-	public static String NEWTONE_API_KEY = "dcd2a896fab93d17a09e2d752ef0e145";
+	public static String NEWTONE_API_KEY2 = "dcd2a896fab93d17a09e2d752ef0e145"; // 류연희
+	public static String NEWTONE_API_KEY = "fe89703bb8fb3756c8c0d612785cbb0b"; // 한주형
 	private TextToSpeechClient tts_client;
 	private SpeechRecognizerClient stt_client;
 	public RunningTwiddy twiddy;
