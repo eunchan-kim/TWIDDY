@@ -27,11 +27,16 @@ public class TwitLogin extends Activity {
 	RequestToken requestToken;
     Twitter twitter;
     Context ctx;
+    private boolean is_login;
+    
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.twit_login);
+		Intent it_login = getIntent();
+		is_login = it_login.getExtras().getBoolean("login");
+		
 		ctx = this;
 		LoadWebPageASYNC twitasync = new LoadWebPageASYNC();
 		twitasync.execute("");
@@ -53,14 +58,18 @@ public class TwitLogin extends Activity {
                 
                 final String urltoload = requestToken.getAuthenticationURL();
 
-                System.out.println("Open the following URL and grant access to your account:");
-                System.out.println(requestToken.getAuthorizationURL());
                 TwitLogin.this.runOnUiThread(new Runnable() {
                 	public void run(){
                 		final WebView webView = (WebView) findViewById(R.id.webView);
                 		webView.getSettings().setJavaScriptEnabled(true);
                 		webView.addJavascriptInterface(new MyJavaScriptInterface(), "HTMLOUT");
-                		webView.loadUrl(urltoload);//+"&force_login=true");
+                		if(is_login) {
+                			webView.loadUrl(urltoload + "&force_login=true");
+                		}
+                		else {
+                			webView.loadUrl(urltoload);
+                		}
+                		
                 		webView.setWebViewClient(new WebViewClient() {
                             @Override
                             public void onPageFinished(WebView view, String url) {
