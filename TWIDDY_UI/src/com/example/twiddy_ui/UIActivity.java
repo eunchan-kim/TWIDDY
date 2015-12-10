@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageButton;
 
 public class UIActivity extends Activity implements OnClickListener{
@@ -19,7 +18,7 @@ public class UIActivity extends Activity implements OnClickListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ui);
-		Button btn_start = (Button) findViewById(R.id.start_btn); 
+		ImageButton btn_start = (ImageButton) findViewById(R.id.start_btn); 
 		ImageButton btn_login = (ImageButton) findViewById(R.id.login_btn);
 		
 		btn_start.setOnClickListener(this);

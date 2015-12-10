@@ -14,15 +14,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"    
     tools:context="com.example.twiddy_ui.UIActivity" >
 
-    <Button
-        android:id="@+id/start_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/login_btn"
-        android:layout_alignLeft="@+id/login_btn"
-        android:layout_alignRight="@+id/login_btn"
-        android:text="Start without login" />
-
     <ImageButton
         android:id="@+id/login_btn"
         android:layout_width="wrap_content"
@@ -31,6 +22,16 @@
         android:layout_centerHorizontal="true"
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
-        android:src="@drawable/start_btn" />
+        android:src="@drawable/img_signin" />
+
+    <ImageButton
+        android:id="@+id/start_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/login_btn"
+        android:layout_alignLeft="@+id/login_btn"
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside"
+        android:src="@drawable/img_start" />
 
 </RelativeLayout>

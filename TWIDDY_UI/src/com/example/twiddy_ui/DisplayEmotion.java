@@ -119,13 +119,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		mentionQ = new LinkedList<MentionInfo>();
 		qLock = new ReentrantLock();
 		
-		Button btn_normal = (Button)findViewById(R.id.btn_normal);
-		Button btn_happy = (Button)findViewById(R.id.btn_happy);
-		Button btn_angry = (Button)findViewById(R.id.btn_angry);
-		btn_normal.setOnClickListener(this);
-		btn_happy.setOnClickListener(this);
-		btn_angry.setOnClickListener(this);
-		
 		recording = (TextView)findViewById(R.id.txt_recording);
 		recording.setVisibility(View.GONE);
 
@@ -188,7 +181,7 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 			@Override
 			public void run() {
 				waitCnt++;				
-				if(waitCnt > 2)	{
+				if(waitCnt > 1)	{
 					Log.e("STT ERROR", "restart!");
 					if (!twiddy.isStop()) {
 						stt_client.stopRecording();
@@ -244,15 +237,6 @@ public class DisplayEmotion  extends Activity implements OnClickListener{
 		// TODO Auto-generated method stub
 		switch(v.getId())
 		{
-		case R.id.btn_normal:
-			showEnumEmotion(EnumEmotion.Normal);
-			break;
-		case R.id.btn_happy:
-			showEnumEmotion(EnumEmotion.Happy);
-			break;
-		case R.id.btn_angry:
-			showEnumEmotion(EnumEmotion.Angry);
-			break;
 		case R.id.btn_hear:
 			this.performSTT();
 			break;
