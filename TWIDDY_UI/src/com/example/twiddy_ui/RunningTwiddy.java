@@ -95,7 +95,7 @@ public class RunningTwiddy {
 	public void getNewMention(String sender, String msg) {
 		this.state = RunningState.askToRead;
 		this.alarmedMsg = TextHandler.feedToSentence(msg);			
-		this.parent.performTTS(sender + "한테서 트윗이 왔어. 읽을까?");
+		this.parent.performTTS(sender + "한테서 트윗이 왔어.");
 	}
 
 	public void handleTTSResult() {
@@ -135,6 +135,7 @@ public class RunningTwiddy {
 	public void handleSTTResult(String msg) {
 		if (!isStop() && msg.equals(ERROR_STT)) {
 			Log.e("HANDLESTT", "ERROR_STT");
+			/*
 			if (this.errCount > 3) {
 				Log.e("HANDLESTT", "reset");
 				reset();
@@ -142,6 +143,7 @@ public class RunningTwiddy {
 				Log.e("HANDLESTT", "errCount++");
 				this.errCount++;
 			}
+			*/
 			this.parent.performSTT();
 			return;
 		}

@@ -25,6 +25,7 @@ public class TTSListener implements TextToSpeechListener {
 
 	@Override
 	public void onFinished() {
+		Log.e("TTSListener", "onFinished");
 		this.parent.handleTTSResult();
 	}
 
