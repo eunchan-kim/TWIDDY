@@ -23,6 +23,7 @@ enum RunningState {
 	askToRead,
 	answeringRead,
 	readFeed,
+	shortSpeech,
 }
 
 public class RunningTwiddy {
@@ -127,6 +128,10 @@ public class RunningTwiddy {
 			Log.e("state", "readFeed");
 			TTStransitionFromReadFeed();
 			break;
+		case shortSpeech:
+			Log.e("state", "shortSpeech");
+			TTStransitionFromShortSpeech();
+			break;
 		default:
 			Log.e("ERROR", runningState(this.state) + " State does not handle the TTS");
 		}
@@ -199,6 +204,7 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Happy);
 			break;
 		case hi:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("반가워!");
@@ -213,6 +219,7 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Start);
 			break;
 		case compliment:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("고마워!");
@@ -227,6 +234,7 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Happy);
 			break;
 		case detention:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("히잉 미안해");
@@ -241,6 +249,7 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Angry);
 			break;
 		case who:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("나는 너의 친구 테디베어야");
@@ -255,12 +264,13 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Explain);
 			break;
 		case where:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
-				this.parent.performTTS("나는 생각한다 고로 존재한다.");
+				this.parent.performTTS("나는 대전에서 태어났어.");
 				break;
 			case 1:
-				this.parent.performTTS("나는 제이브이엠에서 태어났어.");
+				this.parent.performTTS("나는 전산학프로젝트에서 태어났어.");
 				break;
 			case 2:
 				this.parent.performTTS("나는 엔원에서 태어났어.");
@@ -269,6 +279,7 @@ public class RunningTwiddy {
 			this.parent.showEnumEmotion(EnumEmotion.Explain);
 			break;
 		case what:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("너의 이야기를 듣고있어.");
@@ -285,6 +296,7 @@ public class RunningTwiddy {
 		case yes:
 		case no:
 		case none:
+			this.state = RunningState.shortSpeech;
 			switch(selReply) {
 			case 0:
 				this.parent.performTTS("뭐라고 했어?");
@@ -335,6 +347,11 @@ public class RunningTwiddy {
 	}
 
 	private void TTStransitionFromReadFeed() {
+		this.reset();
+		this.parent.performSTT();
+	}
+	
+	private void TTStransitionFromShortSpeech() {
 		this.reset();
 		this.parent.performSTT();
 	}
